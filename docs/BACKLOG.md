@@ -48,12 +48,12 @@ such.
 |---|---|---|---|---|
 | R1–R3 | Oracle feasibility | Cluster A | — | ✅ `research/04` |
 | S-1 | Oracle spike | 03 Part 1 | R1–R3 | ✅ `research/05` |
-| R4 | LWC template AST (`@lwc/template-compiler`) | Cluster B | — | 🟡 → `research/06` |
-| R5 | Mine `blittle/lwc2react` transform rules | Cluster B | — | 🟡 → `research/06` |
+| R4 | LWC template AST (`@lwc/template-compiler`) | Cluster B | — | ✅ `research/06` |
+| R5 | Mine `blittle/lwc2react` transform rules | Cluster B | — | ✅ `research/06` — verdict: **do not fork it** |
 | R6 | LWC static analysis at org scale | Cluster C | — | 🟡 → `research/07` |
 | R7 | Apex parsing + dependency graph | Cluster C | — | 🟡 → `research/07` |
-| R8 | LDS semantics → fidelity-loss table | Cluster D | — | 🟡 → `research/08` |
-| R9 | TanStack Query conventions for a shim | Cluster D | — | 🟡 → `research/08` |
+| R8 | LDS semantics → fidelity-loss table | Cluster D | — | ✅ `research/08` — 27-row table, 4 real losses |
+| R9 | TanStack Query conventions for a shim | Cluster D | — | ✅ `research/08` |
 | R10 | Agent SDK vs Claude Code headless as loop runtime | Cluster E | — | ⬜ |
 | R11 | Agent Skills spec conformance | Cluster E | — | ⬜ |
 | R12 | Existing Ralph implementations to fork | Cluster E | — | ⬜ |
@@ -70,7 +70,7 @@ what exists.
 |---|---|---|---|---|
 | O-1 | Boundary-tree normaliser | foundation | S-1 | ✅ |
 | O-2 | React adapter + end-to-end diff | first real result | O-1 | ✅ |
-| O-3 | **LCS/keyed child alignment in `diffTrees`** | one removal currently cascades into 15 diffs and misnames the node; unusable for an unattended agent | O-2 | ⬜ **next** |
+| O-3 | LCS/keyed child alignment in `diffTrees` | 15 diffs → 3, correctly attributed | O-2 | ✅ |
 | O-4 | **Call-log diff** (`getLastConfig()` vs React call log) | catches the missing-`enabled`-guard defect — the #1 naive-conversion bug | R2.3 ✅ | ⬜ |
 | O-5 | Accessibility-tree parity diff (`dom-accessibility-api`) | check 5 of the S6 gate | O-1 | ⬜ |
 | O-6 | axe-core rule audit (separate from parity) | a faithful conversion of an inaccessible LWC is still inaccessible | — | ⬜ |
@@ -99,10 +99,10 @@ components; a typical org uses 20–25.
 
 | ID | Task | Depends | Status |
 |---|---|---|---|
-| D-1 | Template AST walker | R4 | 🔒 on R4 |
-| D-2 | Directive transforms (`for:each`, `lwc:if/elseif/else`, `iterator:*`, `lwc:dynamic`) | D-1, R5 | 🔒 |
-| D-3 | `@api` → props, slots, lifecycle, scoped CSS | D-1, R5 | 🔒 |
-| D-4 | Event transforms (`onclick={h}` → `onClick`, composed CustomEvents) | D-1 | 🔒 |
+| D-1 | Template AST walker | R4 | ✅ `codemod/template.js` |
+| D-2 | Directive transforms (`for:each`, `lwc:if/elseif/else`, `iterator:*`) | D-1, R5 | ✅ — `lwc:dynamic` flagged, not converted |
+| D-3 | `@api` → props, lifecycle, scoped CSS (JS half — slots done) | D-1, R5 | ⬜ next |
+| D-4 | Event transforms (`onclick={h}` → `onClick`) | D-1 | ✅ — custom-event casing flagged as unrecoverable |
 | D-5 | Benchmark codemod output against the oracle | D-2..D-4, O-* | 🔒 |
 
 Prefer deterministic code over LLM generation — every construct moved into the
@@ -115,9 +115,9 @@ codemod is a construct the model can no longer get wrong.
 | ID | Task | Depends | Status |
 |---|---|---|---|
 | E-1 | React base components (Card/Button/FormattedText/FormattedNumber) | — | ✅ partial — `shim/components.js` |
-| E-2 | `useRecord` / `useApex` on TanStack Query, with `enabled` guards | R8, R9 | 🔒 |
-| E-3 | Query-key factory + invalidation graph | R9 | 🔒 |
-| E-4 | `<fidelity-loss>` table — what LDS does that TanStack cannot | R8 | 🔒 |
+| E-2 | `useRecord` / `useApex` on TanStack Query, with `enabled` guards | R8, R9 | ⬜ **unblocked** |
+| E-3 | Query-key factory + invalidation graph | R9 | ⬜ **unblocked** |
+| E-4 | `<fidelity-loss>` table — F8/F9/F14/F16 | R8 | ⬜ **unblocked** |
 | E-5 | Frozen shim tests (never edited to make a migration pass) | E-2 | 🔒 |
 
 ---

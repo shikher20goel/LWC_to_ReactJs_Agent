@@ -7,5 +7,8 @@ module.exports = {
         '^@salesforce/apex/AccountController.getAccounts$':
             '<rootDir>/force-app/test/jest-mocks/apex/getAccounts.js'
     },
-    testMatch: ['<rootDir>/oracle/**/*.test.js']
+    testMatch: [
+        '<rootDir>/oracle/**/*.test.js',
+        '<rootDir>/codemod/**/*.test.js'
+    ]
 };

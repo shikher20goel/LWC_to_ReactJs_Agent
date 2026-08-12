@@ -12,6 +12,7 @@
     "oracle": "jest oracle/normalise.test.js --silent=false"
   },
   "devDependencies": {
+    "@lwc/template-compiler": "8.28.2",
     "@salesforce/sfdx-lwc-jest": "^7.9.0",
     "dom-accessibility-api": "^0.7.1",
     "react": "^19.2.8",
