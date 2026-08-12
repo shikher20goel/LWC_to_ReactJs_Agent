@@ -117,6 +117,40 @@ export function Input({ label, value, type, name, placeholder, required, disable
         { base: true });
 }
 
+export function ButtonIcon({ iconName, variant, size, alternativeText, title, disabled, name, onClick }) {
+    return boundary('ButtonIcon', { iconName, variant, size, alternativeText, title, disabled, name },
+        h('button', {
+            className: 'slds-button slds-button_icon', title: title || alternativeText,
+            disabled: disabled || undefined, onClick
+        }, h('span', { className: 'slds-assistive-text' }, alternativeText || iconName || 'button')),
+        { base: true, as: 'span' });
+}
+
+export function Combobox({ label, value, options, placeholder, required, disabled, name, variant, onChange }) {
+    return boundary('Combobox',
+        { label, value, options, placeholder, required, disabled, name, variant },
+        h('div', { className: 'slds-form-element' },
+            h('label', { className: 'slds-form-element__label' }, label),
+            h('select', {
+                className: 'slds-input', value, name, required, disabled, onChange
+            }, (options || []).map((o, i) =>
+                h('option', { key: o.value ?? i, value: o.value }, o.label ?? String(o.value))))),
+        { base: true });
+}
+
+export function RadioGroup({ label, options, value, type, required, disabled, name, onChange }) {
+    return boundary('RadioGroup', { label, options, value, type, required, disabled, name },
+        h('fieldset', { className: 'slds-form-element' },
+            h('legend', { className: 'slds-form-element__label' }, label),
+            (options || []).map((o, i) => h('label', {
+                key: o.value ?? i, style: { display: 'block', fontSize: '0.8125rem' }
+            }, h('input', {
+                type: type === 'button' ? 'radio' : 'radio', name, value: o.value,
+                checked: value === o.value, disabled, onChange
+            }), ' ', o.label ?? String(o.value)))),
+        { base: true });
+}
+
 export function FormattedNumber({ value, formatStyle, currencyCode, minimumFractionDigits }) {
     const formatted = value === undefined || value === null
         ? ''

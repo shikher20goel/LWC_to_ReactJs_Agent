@@ -1,6 +1,28 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import graph from '../knowledge/graph.json';
+import { SalesforceRuntimeProvider, createSalesforceQueryClient } from '../shim/runtime.js';
+import '../shim/runtime.css';
+
+/**
+ * A transport that returns nothing. The console previews SHAPE, not data —
+ * showing invented records would make an empty component look populated and
+ * hide exactly the states (empty, error) most likely to be wrong.
+ */
+const previewTransport = {
+    callApex: () => Promise.resolve([]),
+    getRecord: () => Promise.resolve(null),
+    getRecords: () => Promise.resolve({ results: [] }),
+    getObjectInfo: () => Promise.resolve({ apiName: 'Stub', fields: {} }),
+    getPicklistValues: () => Promise.resolve({ values: [] })
+};
+
+/**
+ * Every generated component, loaded lazily. import.meta.glob is resolved at
+ * BUILD time, so a component that fails to compile shows up as a load error
+ * in its own panel rather than taking the console down with it.
+ */
+const MODULES = import.meta.glob('../react/generated/*/*.jsx');
 
 /**
  * Migration console.
@@ -53,6 +75,63 @@ function Sidebar({ items, sel, onSel, q, setQ, filter, setFilter }) {
                 {!items.length && <div style={{ padding: 16 }} className="empty">No components match.</div>}
             </div>
         </div>
+    );
+}
+
+/** A failed render must be visible, not fatal — that IS the finding. */
+class Guard extends React.Component {
+    constructor(p) { super(p); this.state = { err: null }; }
+    static getDerivedStateFromError(err) { return { err }; }
+    componentDidUpdate(prev) { if (prev.k !== this.props.k) this.setState({ err: null }); }
+    render() {
+        if (this.state.err) {
+            return (
+                <div className="lost">
+                    <b>Render failed:</b> {String(this.state.err.message || this.state.err)}
+                    <div style={{ marginTop: 6, color: '#5e6d82' }}>
+                        This is a real result. The component generated, but does not run —
+                        usually a prop the LWC received from its host page, or a construct
+                        flagged under “What converted”.
+                    </div>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
+function Preview({ c }) {
+    const [Comp, setComp] = useState(null);
+    const [err, setErr] = useState(null);
+
+    useEffect(() => {
+        setComp(null); setErr(null);
+        const key = Object.keys(MODULES).find((k) => k.includes(`/${c.name}/`));
+        if (!key) { setErr('Not generated yet — press Generate.'); return; }
+        MODULES[key]()
+            .then((m) => setComp(() => m[c.component] || Object.values(m)[0]))
+            .catch((e) => setErr(String(e.message || e)));
+    }, [c.name]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+    if (err) return <div className="lost"><b>Could not load:</b> {err}</div>;
+    if (!Comp) return <div className="empty">Loading…</div>;
+
+    return (
+        <>
+            <div className="banner">
+                <b>Rendered with no props and no data.</b> An LWC receives
+                <code> @api</code> props and record context from the Lightning page it
+                sits on; there is no page here. Empty states and missing values are
+                expected — what this shows is whether the generated component
+                <i> runs</i>, and roughly what it looks like.
+            </div>
+            <div className="card">
+                <h3>Live render — {c.component}</h3>
+                <div className="body">
+                    <Guard k={c.name}><Comp /></Guard>
+                </div>
+            </div>
+        </>
     );
 }
 
@@ -174,7 +253,7 @@ function Source({ c, code, onLoad }) {
 
 function App() {
     const [sel, setSel] = useState(graph.components[0]?.name);
-    const [tab, setTab] = useState('deps');
+    const [tab, setTab] = useState('ui');
     const [q, setQ] = useState('');
     const [filter, setFilter] = useState('all');
     const [code, setCode] = useState('');
@@ -232,13 +311,14 @@ function App() {
                 </div>
 
                 <div className="tabs">
-                    {[['deps', 'Dependencies'], ['cov', 'Coverage'], ['logic', 'What converted'], ['src', 'Generated code']]
+                    {[['ui', 'UI preview'], ['deps', 'Dependencies'], ['cov', 'Coverage'], ['logic', 'What converted'], ['src', 'Generated code']]
                         .map(([k, label]) => (
                             <div key={k} className={`tab ${tab === k ? 'on' : ''}`}
                                 onClick={() => setTab(k)}>{label}</div>
                         ))}
                 </div>
 
+                {tab === 'ui' && <Preview c={c} />}
                 {tab === 'deps' && <Dependencies c={c} />}
                 {tab === 'cov' && <Coverage c={c} />}
                 {tab === 'logic' && <Logic c={c} />}
@@ -248,4 +328,8 @@ function App() {
     );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(
+    <SalesforceRuntimeProvider transport={previewTransport} client={createSalesforceQueryClient({})}>
+        <App />
+    </SalesforceRuntimeProvider>
+);

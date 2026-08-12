@@ -78,6 +78,13 @@ export default defineConfig({
     plugins: [consoleApi()],
     resolve: {
         alias: [
+            // Generated components import Apex/schema tokens that only exist
+            // on-platform; the console renders them with no data, so a stub is
+            // enough to make the module load.
+            { find: /^@salesforce\/apex\/.*$/, replacement: path.join(root, 'console/sf-stub.js') },
+            { find: /^@salesforce\/schema\/.*$/, replacement: path.join(root, 'console/sf-stub.js') },
+            { find: /^@salesforce\/(user|i18n|resourceUrl|contentAssetUrl|label|messageChannel|customPermission)\/.*$/,
+              replacement: path.join(root, 'console/sf-stub.js') },
             { find: /^@migration\/salesforce-runtime\/components$/, replacement: path.join(root, 'shim/components.js') },
             { find: /^@migration\/salesforce-runtime$/, replacement: path.join(root, 'shim/runtime.js') }
         ]
