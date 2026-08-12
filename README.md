@@ -10,6 +10,7 @@ verified by a differential oracle rather than by hope.
 | Research (Cluster A) | ✅ Complete |
 | S-1 oracle spike | ✅ **PASSED** — 14 assertions, 1.3s |
 | Org-shaped component (`accountList`) | ✅ Passing — adds iteration + 3-way branch coverage |
+| **React half of the oracle** | ✅ **End-to-end diff working** — LWC vs React, byte-identical, negative control fails correctly |
 | Validation on a component from *your org* | ⬜ Still pending — see note below |
 | Org census | ⬜ Blocked on R6/R7 research |
 | Everything else | ⬜ Not started |

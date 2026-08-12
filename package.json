@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "jest",
     "test:verbose": "jest --silent=false",
@@ -11,6 +13,8 @@
   },
   "devDependencies": {
     "@salesforce/sfdx-lwc-jest": "^7.9.0",
-    "dom-accessibility-api": "^0.7.1"
+    "dom-accessibility-api": "^0.7.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   }
 }

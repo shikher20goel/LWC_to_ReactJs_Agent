@@ -60,6 +60,31 @@ The oracle suite must pass. This is the gate.
   id (see `oracle/accountList.test.js`), or promote `data-id` to
   `STRUCTURAL_ATTRS` if the census shows heavy `data-*` use for identity.
 
+- **`diffTrees` matches children POSITIONALLY, so one removal cascades.**
+  Dropping a single child shifts every later sibling, and the diff reports
+  the shift rather than the removal.
+  *Diff signature:* 3 missing `FormattedText` nodes reported as 15 diffs —
+  `tag: FormattedText→Button`, three spurious prop mismatches per row, then
+  `presence: missing in React` for the last child. Measured, not theoretical:
+  `oracle/accountList.react.test.js` negative control.
+  The defect IS caught, but the first line of output names the wrong node.
+  Fix before the agent consumes diffs unattended: align children by LCS (or
+  by a key when the template supplies one) instead of by index.
+
+## React side of the oracle
+
+`normalise()` takes an adapter. `lwcAdapter` (default) infers boundaries from
+`lightning-*`/`c-*` tags and provenance from shadow-vs-light DOM. React has
+neither, so `reactAdapter` reads them from markers the shim emits —
+`data-boundary`, `data-props`, `data-base`, `data-slot` (see
+`shim/boundary.js`). **Never write a second normaliser.** The tree builder is
+shared on purpose: two serialisers means a diff can be an artifact of the
+serialiser rather than the component, and the oracle proves nothing.
+
+When adding a React base component to `shim/components.js`, its prop names
+must match `catalog/base-components.xml` exactly. A mismatch shows up as a
+false prop diff on every single render.
+
 ## Style
 
 - Node 22. ESM in `oracle/`, CommonJS only where jest config requires it.
