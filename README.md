@@ -9,7 +9,8 @@ verified by a differential oracle rather than by hope.
 |---|---|
 | Research (Cluster A) | ✅ Complete |
 | S-1 oracle spike | ✅ **PASSED** — 14 assertions, 1.3s |
-| Real-component validation | ⬜ Next (~1 hour) |
+| Org-shaped component (`accountList`) | ✅ Passing — adds iteration + 3-way branch coverage |
+| Validation on a component from *your org* | ⬜ Still pending — see note below |
 | Org census | ⬜ Blocked on R6/R7 research |
 | Everything else | ⬜ Not started |
 
@@ -32,7 +33,19 @@ it did, on observed paths" — without needing any pre-existing tests.
     npm install
     npx jest --silent=false
 
-Expected: a printed canonical boundary tree and a passing oracle suite.
+Expected: printed canonical boundary trees and a passing oracle suite.
+
+## Components under test
+
+| Bundle | Deployable | Covers |
+|---|---|---|
+| `propertySummary` + `brokerCard` | fixtures only (no meta.xml) | LDS wire, Apex wire, reactive `$param`, `lwc:if/else`, child `c-*`, composed events, named slot |
+| `accountList` (+ `AccountController.cls`) | ✅ yes | **iteration** (`for:each`), `lwc:if/elseif/else`, Apex error branch, `data-*` event payload |
+
+`accountList` is org-*shaped* and deployable, but it is still a component
+written for this repo. **The remaining validation is to drop in a real bundle
+retrieved from your org** — unusual imports, static resources, or
+`platformResourceLoader` are the things synthetic components can't predict.
 
 ## Read first
 

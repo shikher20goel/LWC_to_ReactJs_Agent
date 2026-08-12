@@ -3,7 +3,9 @@ module.exports = {
     ...jestConfig,
     moduleNameMapper: {
         '^@salesforce/apex/PropertyController.getBroker$':
-            '<rootDir>/force-app/test/jest-mocks/apex/getBroker.js'
+            '<rootDir>/force-app/test/jest-mocks/apex/getBroker.js',
+        '^@salesforce/apex/AccountController.getAccounts$':
+            '<rootDir>/force-app/test/jest-mocks/apex/getAccounts.js'
     },
     testMatch: ['<rootDir>/oracle/**/*.test.js']
 };

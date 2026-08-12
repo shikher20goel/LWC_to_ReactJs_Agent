@@ -49,6 +49,17 @@ The oracle suite must pass. This is the gate.
   present with value `undefined`. Diff rule — if any reactive param is
   undefined on the LWC side, React must have issued zero calls.
 
+## Known oracle blind spots — cover these another way
+
+- **Row identity is NOT in the boundary tree.** `data-*` attributes are
+  dropped (they are not in `STRUCTURAL_ATTRS`). Two list rows differing only
+  by record id normalise identically.
+  *Diff signature:* a conversion that binds the WRONG id to a row's action
+  emits a byte-identical tree and passes. Found while adding `accountList`.
+  Cover it with an event-log assertion asserting `detail` carries the right
+  id (see `oracle/accountList.test.js`), or promote `data-id` to
+  `STRUCTURAL_ATTRS` if the census shows heavy `data-*` use for identity.
+
 ## Style
 
 - Node 22. ESM in `oracle/`, CommonJS only where jest config requires it.
