@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<slds schema="1.0">
+  <!--
+    SLDS -> React CSS mapping. SINGLE SOURCE OF TRUTH, loaded by
+    catalog/slds-load.js and consumed by codemod/styles.js.
+
+    THIS FILE IS THE THING TEAMS EDIT. It is deliberately data, not code, so a
+    reviewer can read "this SLDS class becomes that CSS" without opening a
+    converter. Override it per team with a second file (see <presets> below)
+    rather than forking the converter.
+
+    All values verified against SLDS source (research/11):
+      design-tokens/aliases/spacing.yml, the padding SCSS doc-comments, and
+      the force:base token reference — three independent sources that agree.
+  -->
+
+  <!--
+    THE SPACING SCALE.
+
+    NON-LINEAR. `small` is 0.75rem, NOT 1rem, and x-large -> xx-large jumps
+    2rem -> 3rem. Do not assume a 4px grid: a converter that maps these onto
+    Tailwind's linear scale silently changes spacing everywhere.
+  -->
+  <spacing-scale>
+    <step name="none"       rem="0"       px="0"  note="only step that emits !important"/>
+    <step name="xxx-small"  rem="0.125"   px="2"/>
+    <step name="xx-small"   rem="0.25"    px="4"/>
+    <step name="x-small"    rem="0.5"     px="8"/>
+    <step name="small"      rem="0.75"    px="12" note="NOT 1rem — the usual mistake"/>
+    <step name="medium"     rem="1"       px="16"/>
+    <step name="large"      rem="1.5"     px="24"/>
+    <step name="x-large"    rem="2"       px="32"/>
+    <step name="xx-large"   rem="3"       px="48"/>
+  </spacing-scale>
+
+  <!--
+    DENSITY. This is the single most important fact in this file.
+
+    `slds-var-*` is NOT a naming variant of `slds-*`. It exists for Display
+    Density: Salesforce's own example is varSpacingMedium = 1rem in Comfy and
+    0.5rem in COMPACT. So:
+
+      slds-p-around_medium      -> padding: 1rem            (fixed)
+      slds-var-p-around_medium  -> padding: var(--...)      (density-aware)
+
+    Converting a `var-` class to a fixed value COMPILES, LOOKS RIGHT, and
+    silently deletes a working feature. The default preset therefore maps
+    `var-` classes to CSS custom properties with a fallback chain, preserving
+    density. A preset that cannot preserve it MUST warn (see lossy="true").
+  -->
+  <density>
+    <ratio mode="comfy" factor="1"/>
+    <ratio mode="compact" factor="0.5" note="verified for varSpacingMedium"/>
+    <!--
+      `var-` resolves through THREE token groups by axis; the static classes
+      use one group for every axis. Missing this produces the right value in
+      Comfy and the wrong one in Compact — i.e. a bug nobody sees in dev.
+    -->
+    <axis-group axes="top,bottom,vertical"    token="var-spacing-vertical"/>
+    <axis-group axes="left,right,horizontal"  token="var-spacing-horizontal"/>
+    <axis-group axes="around"                 token="var-spacing"/>
+  </density>
+
+  <!-- Which CSS property each spacing axis sets. -->
+  <spacing-axes>
+    <axis name="around"      properties="padding"/>
+    <axis name="top"         properties="padding-top"/>
+    <axis name="right"       properties="padding-right"/>
+    <axis name="bottom"      properties="padding-bottom"/>
+    <axis name="left"        properties="padding-left"/>
+    <axis name="horizontal"  properties="padding-left,padding-right"/>
+    <axis name="vertical"    properties="padding-top,padding-bottom"/>
+  </spacing-axes>
+
+  <!--
+    LAYOUT. slds-grid is flexbox, not CSS grid — the name is misleading and a
+    converter that emits `display:grid` is wrong.
+  -->
+  <classes>
+    <class name="slds-grid"                        css="display:flex"/>
+    <class name="slds-wrap"                        css="flex-wrap:wrap"/>
+    <class name="slds-col"                         css="flex:1 1 auto"/>
+    <class name="slds-grid_align-center"           css="justify-content:center"/>
+    <class name="slds-grid_align-end"              css="justify-content:flex-end"/>
+    <class name="slds-grid_align-space"            css="justify-content:space-between"/>
+    <class name="slds-grid_align-spread"           css="justify-content:space-between"/>
+    <class name="slds-grid_vertical"               css="flex-direction:column"/>
+    <class name="slds-grid_vertical-align-center"  css="align-items:center"/>
+    <class name="slds-grid_vertical-align-start"   css="align-items:flex-start"/>
+    <class name="slds-grid_vertical-align-end"     css="align-items:flex-end"/>
+
+    <!-- Text. Heading sizes verified: large 28px, medium 20px, small 16px. -->
+    <class name="slds-text-heading_large"   css="font-size:1.75rem;line-height:1.25"/>
+    <class name="slds-text-heading_medium"  css="font-size:1.25rem;line-height:1.25"/>
+    <class name="slds-text-heading_small"   css="font-size:1rem;line-height:1.25;font-weight:700"/>
+    <class name="slds-text-body_regular"    css="font-size:0.8125rem"/>
+    <class name="slds-text-body_small"      css="font-size:0.75rem"/>
+    <class name="slds-text-title"           css="font-size:0.75rem;color:#514f4d"/>
+    <class name="slds-text-link"            css="color:#0176d3;text-decoration:underline"/>
+    <class name="slds-text-align_center"    css="text-align:center"/>
+    <class name="slds-text-align_right"     css="text-align:right"/>
+    <class name="slds-truncate"             css="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"/>
+
+    <!--
+      Visibility. ASYMMETRIC on purpose: slds-hide carries !important and
+      slds-show does not. Dropping the !important makes hide stop working
+      wherever a component class wins on specificity.
+    -->
+    <class name="slds-hide"          css="display:none !important"/>
+    <class name="slds-show"          css="display:block"/>
+    <class name="slds-show_inline"   css="display:inline"/>
+    <class name="slds-is-relative"   css="position:relative"/>
+    <class name="slds-is-absolute"   css="position:absolute"/>
+
+    <!-- a11y: visually hidden but still announced. Do NOT convert to display:none. -->
+    <class name="slds-assistive-text"
+           css="position:absolute;margin:-1px;border:0;padding:0;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"/>
+
+    <!-- Surfaces -->
+    <class name="slds-box"            css="border:1px solid #e5e5e5;border-radius:0.25rem;padding:1rem"/>
+    <class name="slds-box_x-small"    css="border:1px solid #e5e5e5;border-radius:0.25rem;padding:0.5rem"/>
+    <class name="slds-theme_shade"    css="background-color:#f3f3f3"/>
+    <class name="slds-theme_success"  css="background-color:#2e844a;color:#fff"/>
+    <class name="slds-theme_error"    css="background-color:#ea001e;color:#fff"/>
+  </classes>
+
+  <!--
+    Component BEM classes (slds-card__header, slds-button_brand …) are NOT
+    mapped to raw CSS here on purpose. They belong to a component that the
+    codemod already replaces with a React equivalent from
+    catalog/base-components.xml, so emitting their CSS too would style the
+    element twice. They are recorded as "owned by component" so the converter
+    can drop them deliberately instead of reporting them as unmapped noise.
+  -->
+  <component-owned prefixes="slds-card,slds-button,slds-badge,slds-modal,slds-form-element,slds-input,slds-icon,slds-avatar,slds-tabs,slds-spinner,slds-pill,slds-notify,slds-media,slds-tile,slds-page-header,slds-path,slds-progress,slds-popover,slds-dropdown,slds-combobox,slds-checkbox,slds-radio,slds-tree,slds-table,slds-list,slds-has-dividers,slds-item,slds-section,slds-accordion,slds-scrollable"/>
+
+  <presets>
+    <!--
+      DEFAULT. Emits CSS custom properties so Display Density survives the
+      migration. Chosen because the corpus is dominated by slds-var-* classes.
+    -->
+    <preset name="css-vars" lossy="false" default="true">
+      <description>CSS Modules + custom properties. Preserves Comfy/Compact density.</description>
+    </preset>
+    <preset name="static" lossy="true">
+      <description>Fixed rem values. Smaller output, but DENSITY IS LOST — var- classes freeze at Comfy.</description>
+      <warn>slds-var-* becomes a fixed value; Compact density stops working.</warn>
+    </preset>
+    <preset name="tailwind" lossy="true">
+      <description>Tailwind utilities. Nearest-step matching.</description>
+      <warn>SLDS spacing is non-linear (small=0.75rem); Tailwind's scale is not. Values shift.</warn>
+      <warn>Density is lost — Tailwind has no Comfy/Compact equivalent.</warn>
+    </preset>
+  </presets>
+</slds>

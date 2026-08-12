@@ -29,6 +29,7 @@ module.exports = {
         '<rootDir>/codemod/**/*.test.js',
         '<rootDir>/census/**/*.test.js',
         '<rootDir>/shim/**/*.test.js',
-        '<rootDir>/fixtures/**/*.test.js'
+        '<rootDir>/fixtures/**/*.test.js',
+        '<rootDir>/catalog/**/*.test.js'
     ]
 };

@@ -15,7 +15,8 @@
     "generate": "node codemod/generate.js",
     "fixtures:check": "jest fixtures --silent=false",
     "preview": "vite",
-    "corpus": "node census/run.js corpus/lwc-recipes && node codemod/generate.js corpus/lwc-recipes react/corpus"
+    "corpus": "node census/run.js corpus/lwc-recipes && node codemod/generate.js corpus/lwc-recipes react/corpus",
+    "styles": "node codemod/styles-report.js corpus/lwc-recipes"
   },
   "devDependencies": {
     "@apexdevtools/apex-parser": "^5.1.0",
