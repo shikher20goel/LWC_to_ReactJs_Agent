@@ -32,8 +32,12 @@
       "dir": "propertySummary",
       "status": "review",
       "hasStyles": true,
-      "reviewItems": 2,
+      "reviewItems": 3,
       "todos": [
+        {
+          "kind": "implicit-field",
+          "detail": "\"_initialised\" is never declared on the class — LWC created it on first assignment. Emitted as component state so the reference resolves; confirm it is really per-instance state and not a typo for a declared field."
+        },
         {
           "kind": "template-event-casing",
           "detail": "Custom event \"contact\" — LWC lowercases event names, so the original camelCase cannot be recovered. Emitted \"onContact\"; verify."

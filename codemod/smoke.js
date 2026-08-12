@@ -80,7 +80,7 @@ function listGenerated(outDir) {
  * `deps` is injected rather than required at module scope so this file stays
  * loadable outside a jsdom environment (the CLI reads listGenerated only).
  */
-async function renderOne(entry, deps) {
+async function renderOne(entry, deps, props = {}) {
     const { React, createRoot, act, runtime } = deps;
     let mod;
     try {
@@ -113,7 +113,7 @@ async function renderOne(entry, deps) {
             root.render(React.createElement(
                 runtime.SalesforceRuntimeProvider,
                 { transport: emptyTransport(), client: runtime.createSalesforceQueryClient({}) },
-                React.createElement(Comp, {})
+                React.createElement(Comp, props)
             ));
         });
         // Let wires settle — a crash often happens on the second render, when

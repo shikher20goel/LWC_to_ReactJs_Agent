@@ -100,9 +100,21 @@ class Guard extends React.Component {
     }
 }
 
+// A syntactically valid 18-character Account id. Not a real record — nothing
+// is fetched with it. Components routinely slice the key prefix out
+// (`recordId.substring(0, 3)`) to branch on object type, so a placeholder like
+// "x" would take a different path than a real id and preview a different
+// component than the one that ships.
+const SAMPLE_RECORD_ID = '001xx000003DGb2AAG';
+
 function Preview({ c }) {
     const [Comp, setComp] = useState(null);
     const [err, setErr] = useState(null);
+    // Most migrated components sit on a record page and do nothing useful
+    // without recordId — several crash outright, exactly as their LWC does.
+    // Previewing only the no-props state made those look broken when they were
+    // simply unmounted from their context.
+    const [withRecordId, setWithRecordId] = useState(false);
 
     useEffect(() => {
         setComp(null); setErr(null);
@@ -116,19 +128,36 @@ function Preview({ c }) {
     if (err) return <div className="lost"><b>Could not load:</b> {err}</div>;
     if (!Comp) return <div className="empty">Loading…</div>;
 
+    const props = withRecordId ? { recordId: SAMPLE_RECORD_ID } : {};
+
     return (
         <>
             <div className="banner">
-                <b>Rendered with no props and no data.</b> An LWC receives
-                <code> @api</code> props and record context from the Lightning page it
-                sits on; there is no page here. Empty states and missing values are
-                expected — what this shows is whether the generated component
-                <i> runs</i>, and roughly what it looks like.
+                <b>Rendered with {withRecordId ? 'a sample recordId' : 'no props'} and no
+                data.</b> An LWC receives <code>@api</code> props and record context from
+                the Lightning page it sits on; there is no page here. Empty states and
+                missing values are expected — what this shows is whether the generated
+                component <i>runs</i>, and roughly what it looks like.
+                <div style={{ marginTop: 8 }}>
+                    <label style={{ cursor: 'pointer' }}>
+                        <input
+                            type="checkbox"
+                            checked={withRecordId}
+                            onChange={(e) => setWithRecordId(e.target.checked)}
+                        />
+                        {' '}Pass a sample <code>recordId</code> (<code>{SAMPLE_RECORD_ID}</code>)
+                    </label>
+                    <div style={{ color: '#5e6d82', marginTop: 4 }}>
+                        If a component fails without this and renders with it, that is not a
+                        conversion defect — the original LWC fails the same way. Run
+                        <code> npm run smoke:diff</code> to confirm which side is at fault.
+                    </div>
+                </div>
             </div>
             <div className="card">
                 <h3>Live render — {c.component}</h3>
                 <div className="body">
-                    <Guard k={c.name}><Comp /></Guard>
+                    <Guard k={`${c.name}:${withRecordId}`}><Comp {...props} /></Guard>
                 </div>
             </div>
         </>

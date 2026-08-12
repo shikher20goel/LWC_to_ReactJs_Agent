@@ -1,7 +1,7 @@
 /**
  * GENERATED from force-app/.../lwc/propertySummary by codemod/component.js.
  * Do not edit by hand — regenerate. Review every TODO before shipping.
- * 2 item(s) need review; see the TODO block below.
+ * 3 item(s) need review; see the TODO block below.
  */
 import React from 'react';
 import styles from './PropertySummary.module.css';
@@ -14,6 +14,7 @@ import { BrokerCard } from '../brokerCard/BrokerCard.jsx';
 import getBroker from '@salesforce/apex/PropertyController.getBroker';
 
 /* REVIEW REQUIRED:
+ *  [implicit-field] "_initialised" is never declared on the class — LWC created it on first assignment. Emitted as component state so the reference resolves; confirm it is really per-instance state and not a typo for a declared field.
  *  [template-event-casing] Custom event "contact" — LWC lowercases event names, so the original camelCase cannot be recovered. Emitted "onContact"; verify.
  *  [lifecycle-manual] renderedCallback requires human translation (DOM timing / imperative access).
  */
@@ -23,6 +24,7 @@ const FIELDS = [NAME_FIELD, PRICE_FIELD];
 export function PropertySummary({ recordId, onBrokerselected }) {
   const [error, setError] = React.useState(undefined);
   const [renderCount, setRenderCount] = React.useState(0);
+  const [_initialised, set_initialised] = React.useState(undefined);
   const property = useRecord({ recordId: recordId, fields: FIELDS });
   const broker = useApex(getBroker, { propertyId: recordId });
   const hasProperty = () => (Boolean(property && property.data));

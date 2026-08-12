@@ -6,6 +6,7 @@
 
 ## Review items
 
+- **[implicit-field]** "_initialised" is never declared on the class — LWC created it on first assignment. Emitted as component state so the reference resolves; confirm it is really per-instance state and not a typo for a declared field.
 - **[template-event-casing]** Custom event "contact" — LWC lowercases event names, so the original camelCase cannot be recovered. Emitted "onContact"; verify.
 - **[lifecycle-manual]** renderedCallback requires human translation (DOM timing / imperative access).
 

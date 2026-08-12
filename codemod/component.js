@@ -215,6 +215,42 @@ export function analyseComponentJs(code) {
         }
     }
 
+    // IMPLICIT INSTANCE FIELDS.
+    //
+    // LWC does not require a field to be declared. `this.foo = []` anywhere in
+    // the class creates it, because the component is a plain JS object. React
+    // has no `this`, so once deThis() strips the prefix the name is a bare
+    // identifier that nothing declares — "allProfileAttributeData is not
+    // defined", and the whole component is blank.
+    //
+    // Found on profileAttributeDemo1, which fails identically to its LWC with
+    // no props (so the differential smoke called it faithful) and diverges only
+    // once a recordId is supplied. That is why the differential probes more
+    // than one input state.
+    const declared = new Set([
+        ...out.fields.map((f) => f.name),
+        ...out.apiProps,
+        ...out.apiSetters.map((s) => s.name),
+        ...out.getters.map((g) => g.name),
+        ...out.methods.map((m) => m.name),
+        ...out.wires.map((w) => w.property)
+    ]);
+    const implicit = new Set();
+    // `this.x =` (or +=, ??=, ...) anywhere in the class body.
+    for (const m of String(src(code, cls.body)).matchAll(/\bthis\.([A-Za-z_$][\w$]*)\s*[-+*/?]?=[^=]/g)) {
+        if (!declared.has(m[1])) implicit.add(m[1]);
+    }
+    for (const name of implicit) {
+        out.fields.push({ name, init: 'undefined' });
+        out.todos.push({
+            kind: 'implicit-field',
+            detail: `"${name}" is never declared on the class — LWC created it on first `
+                + 'assignment. Emitted as component state so the reference resolves; '
+                + 'confirm it is really per-instance state and not a typo for a '
+                + 'declared field.'
+        });
+    }
+
     // Dispatched CustomEvents become callback props.
     const seen = new Set();
     (function visit(node) {
@@ -520,7 +556,25 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
         if (g.expr !== undefined) {
             lines.push(`  const ${g.name} = () => (${rewriteGetterReads(g.expr, others)});`);
         } else {
-            lines.push(`  const ${g.name} = () => ${rewriteGetterReads(g.block, others)};`);
+            // A getter that WRITES a field is legal in LWC and common in
+            // practice — `if (this.x === undefined) this.x = [];` as a lazy
+            // init. Without this rewrite the assignment targets the `const`
+            // that useState destructures and throws "Assignment to constant
+            // variable", which the plain smoke never sees because the getter
+            // is lazy and only runs once real data arrives.
+            let body = rewriteGetterReads(g.block, others);
+            const before = body;
+            body = rewriteStateAssignments(body, fieldNames, todos, `get ${g.name}()`);
+            if (body !== before) {
+                todos.push({
+                    kind: 'render-phase-write',
+                    detail: `get ${g.name}() writes component state while rendering. React `
+                        + 'allows this for the same component and re-renders immediately, '
+                        + 'so a guarded lazy-init converges — but an UNGUARDED write loops '
+                        + 'forever. Verify the write is conditional.'
+                });
+            }
+            lines.push(`  const ${g.name} = () => ${body};`);
             todos.push({ kind: 'multi-statement-getter', detail: `get ${g.name}() has a block body — review.` });
         }
     }

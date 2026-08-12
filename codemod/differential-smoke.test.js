@@ -60,7 +60,7 @@ const tagFor = (name) => `c-${name
  * window (see fixtures/nullSafety.test.js, where assuming otherwise produced a
  * confidently wrong conclusion). Both channels are captured.
  */
-function mountLwc(name) {
+function mountLwc(name, props = {}) {
     let Ctor;
     try {
         // eslint-disable-next-line global-require, import/no-dynamic-require
@@ -74,6 +74,7 @@ function mountLwc(name) {
     window.addEventListener('error', onError);
     try {
         const el = createElement(tagFor(name), { is: Ctor });
+        Object.assign(el, props);
         document.body.appendChild(el);
     } catch (e) {
         seen.push(e.message);
@@ -90,35 +91,65 @@ const generated = listGenerated(path.join(ROOT, OUT));
 const pairs = generated.filter((g) => fs.existsSync(path.join(LWC_DIR, g.name)));
 
 describe(`DIFFERENTIAL SMOKE — ${SRC} vs ${OUT}`, () => {
-    afterEach(() => {
-        while (document.body.firstChild) document.body.removeChild(document.body.firstChild);
-    });
-
     it('has pairs to compare', () => {
+        // Without this a wrong path makes every comparison below vacuous and
+        // the suite reports green on zero coverage.
         expect(pairs.length).toBeGreaterThan(0);
     });
+});
 
-    it.each(pairs.map((p) => [p.name, p]))(
-        '%s — React renders iff the LWC does',
-        async (name, entry) => {
-            const lwc = mountLwc(name);
-            const react = await renderOne(entry, deps);
+/**
+ * MORE THAN ONE INPUT STATE.
+ *
+ * The first version probed only the no-props case, and that hid a real defect
+ * for a full round: profileAttributeDemo1 threw the SAME error as its LWC with
+ * no props (so it read as faithful) and diverged only once a recordId was
+ * supplied — "allProfileAttributeData is not defined", an implicit instance
+ * field the codemod had dropped.
+ *
+ * Agreeing in one state is not agreeing. recordId is the second state because
+ * it is the single most common @api prop — most migrated components sit on a
+ * record page — and it is the input that makes a component's real code path
+ * run instead of bailing out early.
+ */
+const STATES = [
+    { label: 'no props', props: {} },
+    // A syntactically valid 18-char Account id. Components routinely slice the
+    // key prefix out of it (`recordId.substring(0, 3)`), so a placeholder like
+    // 'x' would take a different branch than a real id.
+    { label: 'recordId', props: { recordId: '001xx000003DGb2AAG' } }
+];
 
-            if (lwc.ok === react.ok) return;         // BOTH-OK or BOTH-FAIL
+describe.each(STATES.map((s) => [s.label, s.props]))(
+    `DIFFERENTIAL SMOKE [%s] — ${SRC} vs ${OUT}`,
+    (label, props) => {
+        afterEach(() => {
+            while (document.body.firstChild) document.body.removeChild(document.body.firstChild);
+        });
 
-            if (!react.ok) {
+        it.each(pairs.map((p) => [p.name, p]))(
+            '%s — React renders iff the LWC does',
+            async (name, entry) => {
+                const lwc = mountLwc(name, props);
+                const react = await renderOne(entry, deps, props);
+
+                if (lwc.ok === react.ok) return;     // BOTH-OK or BOTH-FAIL
+
+                if (!react.ok) {
+                    throw new Error(
+                        `REACT-ONLY failure with ${label} — codemod defect.\n`
+                        + `  LWC:   rendered clean\n`
+                        + `  React: [${react.phase}] ${react.error}`
+                    );
+                }
                 throw new Error(
-                    `REACT-ONLY failure — codemod defect.\n`
-                    + `  LWC:   rendered clean\n`
-                    + `  React: [${react.phase}] ${react.error}`
+                    `LWC-ONLY failure with ${label} — the generated component `
+                    + 'survives where the original did not, which usually means '
+                    + 'logic was dropped or a guard was invented.\n'
+                    + `  LWC:   ${lwc.error}\n`
+                    + '  React: rendered clean'
                 );
             }
-            throw new Error(
-                `LWC-ONLY failure — the generated component survives where the `
-                + `original did not, which usually means a guard was invented.\n`
-                + `  LWC:   ${lwc.error}\n`
-                + `  React: rendered clean`
-            );
-        }
-    );
-});
+        );
+    }
+);
