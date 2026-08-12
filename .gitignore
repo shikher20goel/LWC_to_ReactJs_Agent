@@ -43,6 +43,7 @@ force-app/main/default/classes/*
 !force-app/main/default/lwc/brokerCard/
 !force-app/main/default/lwc/propertySummary/
 react/generated/*
+# react/fixtures is OUR output from OUR fixtures — committed, tests depend on it
 springboot/generated/*
 knowledge/graph.json
 census/census.json

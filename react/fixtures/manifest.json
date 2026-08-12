@@ -1,0 +1,46 @@
+{
+  "generatedFrom": "fixtures/force-app",
+  "total": 3,
+  "byStatus": {
+    "clean": 2,
+    "review": 1
+  },
+  "components": [
+    {
+      "lwc": "accountList",
+      "component": "AccountList",
+      "dir": "accountList",
+      "status": "clean",
+      "hasStyles": false,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "brokerCard",
+      "component": "BrokerCard",
+      "dir": "brokerCard",
+      "status": "clean",
+      "hasStyles": true,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "propertySummary",
+      "component": "PropertySummary",
+      "dir": "propertySummary",
+      "status": "review",
+      "hasStyles": true,
+      "reviewItems": 2,
+      "todos": [
+        {
+          "kind": "template-event-casing",
+          "detail": "Custom event \"contact\" — LWC lowercases event names, so the original camelCase cannot be recovered. Emitted \"onContact\"; verify."
+        },
+        {
+          "kind": "lifecycle-manual",
+          "detail": "renderedCallback requires human translation (DOM timing / imperative access)."
+        }
+      ]
+    }
+  ]
+}

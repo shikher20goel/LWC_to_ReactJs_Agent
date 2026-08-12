@@ -17,7 +17,10 @@ import getAccounts from '@salesforce/apex/AccountController.getAccounts';
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { AccountList as Generated } from '../react/generated/AccountList.jsx';
+// Generated from fixtures/force-app into react/fixtures — a STABLE tree.
+// react/generated is where a user's own org output lands, so depending on it
+// meant this suite broke the moment the tool was used for its actual purpose.
+import { AccountList as Generated } from '../react/fixtures/accountList/AccountList.jsx';
 import { SalesforceRuntimeProvider, createSalesforceQueryClient } from '../shim/runtime.js';
 import { normalise, render, reactAdapter } from './normalise';
 import { diffTrees, formatDiff } from './diff';
