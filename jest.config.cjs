@@ -36,6 +36,7 @@ module.exports = {
         '<rootDir>/shim/**/*.test.js',
         '<rootDir>/fixtures/**/*.test.js',
         '<rootDir>/catalog/**/*.test.js',
-        '<rootDir>/apex/**/*.test.js'
+        '<rootDir>/apex/**/*.test.js',
+        '<rootDir>/agent/**/*.test.js'
     ]
 };

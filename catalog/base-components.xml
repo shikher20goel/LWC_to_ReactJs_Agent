@@ -90,6 +90,14 @@
     <escalate-always>true</escalate-always>
   </component>
 
+  <!-- Added by acting on `npm run learn` output: 10 uses, the top gap. -->
+  <component tag="lightning-output-field" canonical="OutputField" tier="H" uses="10">
+    <reason>Only meaningful inside a record form. What it renders — the label,
+            the type-specific formatting, and whether the field appears at all —
+            comes from object metadata and FLS, not from the template.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+
   <component tag="lightning-messages" canonical="Messages" tier="H">
     <reason>Renders form-level errors produced by the record-form DML cycle.</reason>
     <escalate-always>true</escalate-always>

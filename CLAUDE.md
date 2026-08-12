@@ -112,6 +112,40 @@ endpoint before that component can ship. Triage, cheapest first:
   was only fetching data. Every re-exposed method needs an explicit FLS and
   sharing decision recorded, not inherited.
 
+## The agent's memory — how it learns, and what it must never learn
+
+`knowledge/knowledge.json` accumulates across runs. `npm run learn` scans
+source and records constructs the catalogs do not know; `npm run learn:verify`
+promotes them. Three states, and only evidence moves knowledge forward:
+
+    observed   seen, with evidence (which components, how many uses).
+               NO claim about what it means.
+    proposed   a catalog entry now exists. Still NOT used by the codemod.
+    verified   a component using it converted ORACLE-GREEN. Only now is it
+               trusted.
+
+**Never mark anything verified without oracle evidence.** `promote()` throws if
+you try, and that throw is load-bearing. The asymmetry is the whole reason:
+
+    a MISSING entry -> reported, blocks the build, gets fixed
+    a WRONG entry   -> silently trusted forever, and every future conversion
+                       inherits it
+
+A guessed `lightning-combobox` prop (`items` when it is `options`) makes the
+build pass, makes `learn` stop reporting the gap, and produces a false diff on
+every render that looks like the COMPONENT is broken rather than the catalog.
+
+**The agent does not write mappings.** It records what it saw and ranks by
+usage — turning "the catalog is incomplete" into "these five entries, in this
+order, unblock 40 components." Filling them in needs a source of truth
+(CLAUDE.md rule 3), not inference.
+
+**Self-healing follows the same rule.** A fix is attached to a failure
+SIGNATURE (the shape, not the message — messages carry component names and
+never repeat). An unverified fix is recorded as a suggestion and is NEVER
+auto-applied; only `verifiedBy` makes it reusable. Auto-applying an unverified
+fix propagates one bad idea to every component sharing the signature.
+
 ## Oracle invariants — discovered by the S-1 spike, do not regress
 
 - **Base-component props are JS properties, NOT attributes.**

@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "updated": "2026-08-12T05:00:23.349Z",
+  "constructs": {
+    "slds:slds-align_absolute-center": {
+      "kind": "slds-class",
+      "state": "observed",
+      "uses": 2,
+      "seenIn": [
+        "contactInfo",
+        "graphqlRefresh"
+      ],
+      "evidence": [],
+      "firstSeen": "contactInfo"
+    },
+    "slds:slds-text-color_weak": {
+      "kind": "slds-class",
+      "state": "observed",
+      "uses": 1,
+      "seenIn": [
+        "graphqlMutationDelete"
+      ],
+      "evidence": [],
+      "firstSeen": "graphqlMutationDelete"
+    },
+    "slds:slds-size_full": {
+      "kind": "slds-class",
+      "state": "observed",
+      "uses": 1,
+      "seenIn": [
+        "recordPickerDynamicTarget"
+      ],
+      "evidence": [],
+      "firstSeen": "recordPickerDynamicTarget"
+    },
+    "base:lightning-output-field": {
+      "kind": "base-component",
+      "state": "verified",
+      "uses": 10,
+      "seenIn": [
+        "recordViewFormDynamicContact",
+        "recordViewFormStaticContact"
+      ],
+      "evidence": [
+        "needs canonical name + EXACT prop list; a wrong prop name produces a false diff on every render"
+      ],
+      "firstSeen": "recordViewFormDynamicContact",
+      "promotedBy": "generated.react @ 2026-08-12T05:00:23.349Z"
+    }
+  },
+  "failures": {
+    "multi-template::render() override": {
+      "kind": "multi-template",
+      "subject": "render() override",
+      "count": 6,
+      "seenIn": [
+        "errorPanel",
+        "ldsUtils",
+        "miscMultipleTemplates",
+        "mortgage",
+        "opportunitiesStateManager",
+        "resourceLoader"
+      ],
+      "fix": null,
+      "verifiedBy": null
+    }
+  },
+  "runs": [
+    {
+      "at": "2026-08-12T04:58:21.184Z",
+      "root": "force-app",
+      "scanned": 3
+    },
+    {
+      "at": "2026-08-12T04:58:21.468Z",
+      "root": "..\\AppData\\Local\\Temp\\claude\\C--Users-shikh-LWCTOReactConversion\\ce324f15-ac44-4321-8ebe-5d9c84848ee9\\scratchpad\\full-corpus",
+      "scanned": 126
+    }
+  ]
+}

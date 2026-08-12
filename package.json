@@ -13,6 +13,8 @@
     "corpus": "node census/run.js corpus/lwc-recipes && node codemod/generate.js corpus/lwc-recipes react/corpus",
     "fixtures:check": "jest fixtures --silent=false",
     "generate": "node codemod/generate.js",
+    "learn": "node agent/learn.js",
+    "learn:verify": "node agent/verify.js",
     "oracle": "jest oracle/normalise.test.js --silent=false",
     "preview": "vite",
     "setup": "npm ci --offline",
