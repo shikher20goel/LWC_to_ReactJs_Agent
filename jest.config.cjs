@@ -20,13 +20,7 @@ module.exports = {
     // transform WITHOUT touching the LWC transform, which owns .js/.html/.css.
     // Overlapping those would break LWC template compilation.
     moduleFileExtensions: [...jestConfig.moduleFileExtensions, 'jsx'],
-    // @apexdevtools/apex-parser ships ESM. Jest runs CJS, so it must be
-    // transformed — node_modules is excluded from transforms by default.
-    transformIgnorePatterns: ['/node_modules/(?!@apexdevtools)'],
     transform: {
-        'node_modules[\\/]@apexdevtools[\\/].+\.js$': ['babel-jest', {
-            plugins: ['@babel/plugin-transform-modules-commonjs']
-        }],
         ...jestConfig.transform,
         '^.+\\.jsx$': ['babel-jest', {
             presets: [['@babel/preset-react', { runtime: 'automatic' }]],
