@@ -1,0 +1,159 @@
+#!/usr/bin/env node
+/**
+ * Seed the knowledge store with the preview-failure signatures found on the
+ * first real org, each with a VERIFIED fix.
+ *
+ * Why this file exists rather than a paragraph in a doc: the agent's whole
+ * self-healing story is `reusableFixes()`, and a fix is only reusable if it
+ * carries a `verifiedBy` — the name of a test that proves it. Every entry
+ * below names one. Nothing here was written from memory; each `verifiedBy`
+ * suite was run and passed before the entry was added.
+ *
+ * The shared lesson across all of them:
+ *
+ *   STATIC CLEAN IS NOT RENDERS.
+ *
+ * Every one of these components parsed, converted with no escalations, and was
+ * counted in the manifest — while being blank in the browser. The checks that
+ * caught them are the ones that MOUNT something: codemod/smoke.test.js and
+ * codemod/differential-smoke.test.js. Any future defect of this family will be
+ * caught there and nowhere else, so those two are the ones to run after
+ * generating.
+ *
+ *   npm run smoke          # does every generated component mount?
+ *   npm run smoke:diff     # does it mount IFF the original LWC does?
+ */
+import {
+    loadKnowledge, saveKnowledge, recordFailure, recordFix
+} from './knowledge.js';
+
+const SIGNATURES = [
+    {
+        kind: 'render',
+        subject: 'uncatalogued-base-renders-undefined',
+        components: ['accordianExample', 'profileAttributeDemo2',
+            'profileAttributeSectionDemo2', 'smartCalendar_CommunityHomeComponent'],
+        fix: 'A base component in catalog/base-components.xml with no matching export '
+            + 'in shim/components.js emits a canonical name nothing defines — the '
+            + 'browser says "Accordion is not defined" and the component is blank. '
+            + 'Catalogue AND shim, always together. catalog/contract.test.js now '
+            + 'fails if a non-Tier-H entry has no shim; it found four more gaps '
+            + '(Spinner, FormattedDateTime, Tree, PillContainer) the moment it ran.',
+        verifiedBy: 'catalog/contract.test.js'
+    },
+    {
+        kind: 'import',
+        subject: 'platform-module-declared-shim-but-not-exported',
+        components: ['case_profileAttribute_mainComponent', 'smartCalendar_LWCMainComponent',
+            'profileAttributesComponentVer1'],
+        fix: 'catalog/platform-modules.xml marks a module status="shim" to mean the '
+            + 'runtime exports it. 18 of 25 declared names did not exist, so the '
+            + 'generated module failed to LOAD — "does not provide an export named '
+            + '\'useToast\'" — taking the whole component down. Either export it from '
+            + 'shim/runtime.js or mark the row status="escalate". lightning/modal was '
+            + 'reclassified: its own note already said the codemod should flag it.',
+        verifiedBy: 'shim/contract.test.js'
+    },
+    {
+        kind: 'render',
+        subject: 'for-each-over-undefined-throws-in-react',
+        components: ['profileAttributeSectionDemo2', 'profileAttributeDemo1',
+            'case_profileAttribute_allSectionsComponent'],
+        fix: 'MEASURED: LWC renders NOTHING for for:each/iterator over undefined, '
+            + 'while JS .map() throws. An @api list is undefined until a parent '
+            + 'passes it, which is exactly the state a preview renders in. The '
+            + 'codemod emits `(list ?? []).map(...)`. The guard stops at the LIST — '
+            + 'member access is NOT guarded, because the same measurement shows LWC '
+            + 'throws there too, and suppressing a crash the original had would hide '
+            + 'the behaviour difference the migration exists to find.',
+        verifiedBy: 'fixtures/nullSafety.test.js'
+    },
+    {
+        kind: 'render',
+        subject: 'lwc-getter-is-lazy-const-is-eager',
+        components: ['profileAttributeSectionDemo1', 'case_profileAttribute_singleSectionComponent'],
+        fix: 'An LWC getter runs only when something reads it, and runs again on '
+            + 'every read. `const x = expr;` runs once, before the first render. A '
+            + 'getter guarded by `<template if:true={open}>` is never called while '
+            + 'open is false, so it is routinely written assuming data that has not '
+            + 'arrived — hoisted, it throws before anything renders. Emit getters as '
+            + 'zero-arg functions and rewrite every reference to a call, in the '
+            + 'template and in other method bodies. A for:item of the same name '
+            + 'shadows the getter and must NOT be called.',
+        verifiedBy: 'codemod/template.test.js'
+    },
+    {
+        kind: 'silent-loss',
+        subject: 'api-getter-treated-as-prop-drops-body',
+        components: ['profileAttributeDemo1'],
+        fix: 'THE WORST ONE: `@api get x()` is a PUBLIC GETTER, not a prop the parent '
+            + 'passes. The analyser tested the @api decorator before the accessor '
+            + 'kind, so it became a destructured prop and the getter BODY WAS '
+            + 'DISCARDED — a component whose entire job was building a classification '
+            + 'tree emitted an empty render and reported "No review items flagged". '
+            + 'Check m.kind === get/set BEFORE isApi. `@api set x(v)` is the opposite: '
+            + 'it IS parent-written, so it stays a prop, but its body has nowhere to '
+            + 'go in a function component and must be flagged, not dropped. Caught '
+            + 'only by the differential smoke, as an LWC-ONLY failure — the React '
+            + 'rendered "clean" precisely because the logic was gone.',
+        verifiedBy: 'codemod/differential-smoke.test.js'
+    },
+    {
+        kind: 'render',
+        subject: 'unconverted-child-referenced-but-undefined',
+        components: ['accordianExample1'],
+        fix: 'A c-* child that is not in the conversion set was flagged as a TODO '
+            + 'while the JSX still emitted a bare <Example1/> — "Example1 is not '
+            + 'defined" blanks the parent too. Emit a labelled placeholder so the '
+            + 'gap renders where the child belongs. Root cause here: generate.js '
+            + 'SILENTLY skipped a bundle with no .html, so "Generated 20 component(s)" '
+            + 'read as complete on a 21-bundle org. Skips are now counted, listed, '
+            + 'and written to manifest.json as `skipped` alongside `bundlesFound`.',
+        verifiedBy: 'codemod/differential-smoke.test.js'
+    },
+    {
+        kind: 'harness',
+        subject: 'test-harness-failure-misread-as-codemod-defect',
+        components: ['propertySummary', 'profileAttributesSingleClassificationVer1'],
+        fix: 'The render smoke reported 11 of 19 components broken on '
+            + '"Cannot find module @salesforce/schema/...". None were broken: '
+            + 'supplying moduleNameMapper REPLACES sfdx-lwc-jest\'s, and @salesforce/* '
+            + 'resolves through its custom RESOLVER anyway. The same specifier must '
+            + 'mean different things on the two sides — a real stub for LWC, an inert '
+            + 'token for React — which a mapper cannot express because it matches the '
+            + 'request, not the requester. jest.resolver.cjs discriminates on who is '
+            + 'importing. Before blaming generated code, check the harness resolves it.',
+        verifiedBy: 'oracle/generated.react.test.js'
+    },
+    {
+        kind: 'render',
+        subject: 'jsx-conditional-as-arrow-expression-body',
+        components: ['case_profileAttribute_singleSectionComponent',
+            'profileAttributesSingleClassificationVer1'],
+        fix: '`{cond && (...)}` is valid as JSX CHILDREN but not as an arrow\'s '
+            + 'expression body — there the braces read as a block or object literal '
+            + 'and the FILE DOES NOT PARSE. Happens whenever a for:each body\'s only '
+            + 'child is a conditional. Wrap the body in a fragment, but only when '
+            + 'needed: a wrapper moves where React expects `key`.',
+        verifiedBy: 'codemod/smoke.test.js'
+    }
+];
+
+const k = loadKnowledge();
+for (const s of SIGNATURES) {
+    let sig;
+    for (const c of s.components) {
+        sig = recordFailure(k, { kind: s.kind, subject: s.subject, component: c });
+    }
+    recordFix(k, sig, { fix: s.fix, verifiedBy: s.verifiedBy });
+}
+saveKnowledge(k, { stamp: '2026-08-12' });
+
+console.log(`Recorded ${SIGNATURES.length} preview-failure signatures, each with a `
+    + 'verified fix.\n');
+for (const s of SIGNATURES) {
+    console.log(`  ${s.kind}::${s.subject}`);
+    console.log(`     seen in ${s.components.length}, verified by ${s.verifiedBy}`);
+}
+console.log('\nRun `npm run smoke` and `npm run smoke:diff` after generating — they '
+    + 'are the only checks that mount anything.');

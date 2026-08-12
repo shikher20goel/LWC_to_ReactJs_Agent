@@ -40,9 +40,26 @@ const pascal = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // Two passes: siblings must be known BEFORE generating any one component, or
 // child imports cannot be emitted.
-const bundles = findBundles(root).filter(
+const allBundles = findBundles(root);
+const bundles = allBundles.filter(
     (d) => fs.existsSync(path.join(d, `${path.basename(d)}.html`))
 );
+
+// A bundle with no .html cannot be converted — but it must not vanish either.
+// Dropping it silently made "Generated 20 component(s)" read as complete on a
+// 21-bundle org, while a SIBLING component imported the missing one and died
+// with "Example1 is not defined" in the browser. A skip that is not reported
+// is indistinguishable from a success.
+const skipped = allBundles
+    .filter((d) => !bundles.includes(d))
+    .map((d) => ({
+        lwc: path.basename(d),
+        status: 'skipped',
+        short: 'no template file in the bundle',
+        reason: `no ${path.basename(d)}.html in the bundle — nothing to render. `
+            + 'Either the template was not retrieved, or this is a JS-only module '
+            + 'that other components import rather than embed.'
+    }));
 const knownComponents = new Set(bundles.map((d) => pascal(path.basename(d))));
 // Component name -> its folder (the LWC bundle name), for cross-folder imports.
 const componentDirs = new Map(bundles.map((d) => [pascal(path.basename(d)), path.basename(d)]));
@@ -114,10 +131,15 @@ for (const dir of bundles) {
 /* -------- manifest: the index you actually navigate at 1000 components ----- */
 
 const byStatus = manifest.reduce((a, m) => { a[m.status] = (a[m.status] || 0) + 1; return a; }, {});
+if (skipped.length) byStatus.skipped = skipped.length;
 fs.writeFileSync(path.join(outDir, 'manifest.json'), `${JSON.stringify({
     generatedFrom: path.relative(path.join(here, '..'), root).replace(/\\/g, '/') || '.',
+    // bundlesFound vs total: the difference is what was NOT converted. Reporting
+    // only `total` made a partial run look complete.
+    bundlesFound: allBundles.length,
     total: manifest.length,
     byStatus,
+    skipped,
     components: manifest.sort((a, b) => a.lwc.localeCompare(b.lwc))
 }, null, 2)}\n`);
 
@@ -125,7 +147,12 @@ console.log(`Generated ${manifest.length} component(s), ${cssFiles} CSS module(s
 console.log(`  clean     ${byStatus.clean || 0}`);
 console.log(`  review    ${byStatus.review || 0}`);
 console.log(`  escalated ${byStatus.escalated || 0}   (correct refusals — Tier-H / host-only)`);
-console.log(`\nOne folder per LWC. manifest.json indexes all ${manifest.length}.`);
+if (skipped.length) {
+    console.log(`  SKIPPED   ${skipped.length}   (found but not converted — listed below)`);
+    for (const s of skipped) console.log(`     ${s.lwc}: ${s.short}`);
+}
+console.log(`\nOne folder per LWC. manifest.json indexes all ${manifest.length} `
+    + `of ${allBundles.length} bundle(s) found.`);
 
 if (needsReview) {
     console.log(`\n${manifest.length - needsReview}/${manifest.length} converted with no review items.`);

@@ -20,6 +20,8 @@
     "oracle": "jest oracle/normalise.test.js --silent=false",
     "preview": "vite",
     "setup": "npm ci --offline",
+    "smoke": "node scripts/smoke.cjs",
+    "smoke:diff": "node -e \"process.env.SMOKE_MODE='diff';require('./scripts/smoke.cjs')\"",
     "springboot": "node apex/generate-springboot.js",
     "styles": "node codemod/styles-report.js corpus/lwc-recipes",
     "test": "jest",

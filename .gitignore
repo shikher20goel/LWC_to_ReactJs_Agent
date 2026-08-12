@@ -47,3 +47,6 @@ react/generated/*
 springboot/generated/*
 knowledge/graph.json
 census/census.json
+
+# Local Claude Code settings (machine-specific permissions)
+.claude/settings.local.json

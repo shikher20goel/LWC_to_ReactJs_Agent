@@ -43,10 +43,15 @@
   <module id="lightning/alert"   uses="2" status="shim" exports="default" react="alert"/>
   <module id="lightning/confirm" uses="1" status="shim" exports="default" react="confirm"/>
   <module id="lightning/prompt"  uses="1" status="shim" exports="default" react="prompt"/>
-  <module id="lightning/modal"   uses="1" status="shim" exports="default" react="Modal"
+  <!-- Was status="shim" react="Modal" while its own note said the codemod
+       flags it rather than pretending. The status is what the codemod reads,
+       so it emitted an import for a `Modal` that never existed. Status now
+       matches the note. -->
+  <module id="lightning/modal"   uses="1" status="escalate" exports="default"
           note="LightningModal is a base CLASS a component extends — not a
                 function. Conversion needs a class-to-component rewrite, so the
-                codemod flags it rather than pretending."/>
+                codemod flags it rather than pretending. Same blocker as the
+                lightning-modal-header/body/footer catalog entries."/>
 
   <!-- ===================== data ===================== -->
   <module id="lightning/uiRecordApi" status="shim"

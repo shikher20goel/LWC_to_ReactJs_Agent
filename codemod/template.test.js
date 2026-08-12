@@ -52,7 +52,42 @@ describe('CODEMOD — template to JSX', () => {
                 <li key={row.id}>{row.label}</li>
             </template>`));
         expect(r.jsx).toContain('key={row.id}');
-        expect(r.jsx).toContain('rows.map((row) =>');
+        // `(rows ?? [])`, not `rows` — for:each over undefined renders nothing
+        // in LWC and throws in JS. Measured in fixtures/nullSafety.test.js.
+        expect(r.jsx).toContain('(rows ?? []).map((row) =>');
+    });
+
+    it('GUARDS the iterated list but NOT member access', () => {
+        // Two different LWC behaviours, so two different translations. Guarding
+        // member access as well would hide a crash the original also had.
+        const r = conv(tpl(`
+            <template for:each={data.rows} for:item="row">
+                <li key={row.id}>{row.owner.name}</li>
+            </template>`));
+        expect(r.jsx).toContain('(data.rows ?? []).map(');
+        expect(r.jsx).toContain('{row.owner.name}');
+        expect(r.jsx).not.toContain('?.');
+    });
+
+    it('calls a getter instead of reading it as a value', () => {
+        // LWC getters are lazy; the codemod emits them as zero-arg functions,
+        // so every template reference has to be a CALL. A missed one renders
+        // "function () { ... }" as text, or silently as [object Object].
+        const r = convertTemplate(tpl('<div>{fullName}</div><p>{plain}</p>'),
+            { name: 'x', getters: ['fullName'] });
+        expect(r.jsx).toContain('{fullName()}');
+        expect(r.jsx).toContain('{plain}');
+    });
+
+    it('does NOT call a for:item that shadows a getter name', () => {
+        // The loop variable wins inside the loop, exactly as in LWC. Calling
+        // it would invoke a plain object.
+        const r = convertTemplate(tpl(`
+            <template for:each={rows} for:item="label">
+                <li key={label.id}>{label.text}</li>
+            </template>`), { name: 'x', getters: ['label'] });
+        expect(r.jsx).toContain('{label.text}');
+        expect(r.jsx).not.toContain('label()');
     });
 
     it('TRAP 5: parse() never throws — bad input returns ok:false with blockers', () => {
@@ -184,7 +219,7 @@ describe('CODEMOD — against the real bundles in force-app', () => {
         const { jsx } = conv(html, 'accountList');
         // The same boundaries, props and order as react/accountList.js.
         expect(jsx).toContain('<Card title="Accounts" iconName="standard:account">');
-        expect(jsx).toContain('accounts.map((account) =>');
+        expect(jsx).toContain('(accounts ?? []).map((account) =>');
         expect(jsx).toContain('key={account.Id}');
         expect(jsx).toContain('<FormattedText value={account.Industry} />');
         expect(jsx).toContain('label="View"');

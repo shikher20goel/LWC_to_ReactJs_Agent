@@ -13,6 +13,39 @@ making architectural changes.
 
 The oracle suite must pass. This is the gate.
 
+**After generating from a real org, also run:**
+
+    npm run smoke        # does every generated component MOUNT?
+    npm run smoke:diff   # does it mount IFF the original LWC does?
+
+### STATIC CLEAN IS NOT "RENDERS"
+
+The single most expensive lesson in this repo. On the first real org, 16 of 20
+components were blank in the browser while every static check said success:
+they parsed, they had no escalations, the census counted them, the manifest
+called them clean, and 181 tests passed. Every one of those checks answers a
+question about the TEXT of the generated code. None of them mounts anything.
+
+The failures all had the same shape — a name the codemod emitted that nothing
+exported (`Accordion`, `useToast`), or an eager evaluation of something LWC
+evaluates lazily. Invisible statically, obvious on first render.
+
+So: **never report a conversion as working on the strength of a passing test
+suite alone.** "Converted with no review items" and "renders" are different
+claims. Only `smoke` and `smoke:diff` support the second one.
+
+And when a smoke failure appears, `smoke:diff` decides whose fault it is:
+
+| result | meaning |
+|---|---|
+| BOTH-FAIL | faithful — the original LWC has the same precondition. Leave it. |
+| REACT-ONLY | a codemod defect. Fix it. |
+| LWC-ONLY | the React survives where the original died — usually because logic was silently DROPPED. Treat as severe. |
+
+That last row is not hypothetical: it is how `@api get x()` being mistaken for
+a prop was caught, after the getter body had been discarded entirely and the
+component reported "No review items flagged".
+
 ## Hard rules — never violate
 
 1. **No Salesforce passwords, security tokens, or session IDs.** Ever. Not in
@@ -161,6 +194,53 @@ fix propagates one bad idea to every component sharing the signature.
 - **Undefined reactive param signal:** `getLastConfig()` returns the key
   present with value `undefined`. Diff rule — if any reactive param is
   undefined on the LWC side, React must have issued zero calls.
+
+## LWC semantics that do NOT survive a literal translation
+
+Each measured against the real engine in `fixtures/nullSafety.test.js` and the
+probe bundles under `fixtures/probes/`. Do not "improve" on these from
+intuition — the first draft of that probe assumed two of them backwards.
+
+- **`for:each` / `iterator:*` over undefined renders NOTHING.** `.map()`
+  throws. Emit `(list ?? []).map(...)`. An `@api` list is undefined until a
+  parent passes it, which is exactly the state a preview renders in.
+- **Member access is NOT null-safe.** `{a.b.c}` throws in LWC when `b` is
+  undefined, at any depth. So do NOT emit `a?.b?.c`. Suppressing a crash the
+  original also had is worse than reproducing it — the job is to surface
+  behaviour differences, not to hide them behind a blank screen.
+- **Getters are LAZY and re-run on every read.** `const x = expr;` is neither.
+  A getter guarded by `<template if:true={open}>` is never called while `open`
+  is false, so it is routinely written assuming data that has not arrived.
+  Emit getters as zero-arg functions; rewrite every reference to a call. A
+  `for:item` of the same name shadows the getter and must not be called.
+- **`@api get x()` is a PUBLIC GETTER, not a prop.** Check `m.kind` before the
+  `@api` decorator. `@api set x(v)` is the opposite — parent-written, so it
+  stays a prop, but its body has nowhere to go in a function component and
+  must be flagged rather than dropped.
+
+## A catalog entry is a PROMISE the runtime has to keep
+
+Both catalogs are read by the codemod as ground truth, and neither was checked
+against the code behind it:
+
+- `catalog/base-components.xml` → an entry means `shim/components.js` exports
+  that canonical name. Enforced by `catalog/contract.test.js`.
+- `catalog/platform-modules.xml` → `status="shim"` means `shim/runtime.js`
+  exports every name in `react="..."`. Enforced by `shim/contract.test.js`.
+  18 of 25 declared names did not exist.
+
+A catalogued name with no implementation is not a partial success — the module
+fails to load and the entire component is blank. If you cannot implement it
+honestly, the row is `escalate`, not `shim`.
+
+## Report what was skipped
+
+`generate.js` silently dropped bundles with no `.html`, so "Generated 20
+component(s)" read as complete on a 21-bundle org — while a sibling imported
+the missing one and died at render. Skips are counted, listed, and written to
+`manifest.json` as `skipped` alongside `bundlesFound`. Any future bound on
+coverage (top-N, sampling, filtering) must say what it dropped. Silent
+truncation reads as "covered everything".
 
 ## Known oracle blind spots — cover these another way
 

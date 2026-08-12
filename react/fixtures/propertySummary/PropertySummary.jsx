@@ -25,11 +25,11 @@ export function PropertySummary({ recordId, onBrokerselected }) {
   const [renderCount, setRenderCount] = React.useState(0);
   const property = useRecord({ recordId: recordId, fields: FIELDS });
   const broker = useApex(getBroker, { propertyId: recordId });
-  const hasProperty = Boolean(property && property.data);
-  const propertyName = getFieldValue(property.data, NAME_FIELD);
-  const propertyPrice = getFieldValue(property.data, PRICE_FIELD);
-  const brokerName = broker && broker.data ? broker.data.Name : '';
-  const brokerId = broker && broker.data ? broker.data.Id : null;
+  const hasProperty = () => (Boolean(property && property.data));
+  const propertyName = () => (getFieldValue(property.data, NAME_FIELD));
+  const propertyPrice = () => (getFieldValue(property.data, PRICE_FIELD));
+  const brokerName = () => (broker && broker.data ? broker.data.Name : '');
+  const brokerId = () => (broker && broker.data ? broker.data.Id : null);
   const handleBrokerContact = (event) => {
         onBrokerselected?.({ brokerId: event.detail.brokerId });
     };
@@ -43,14 +43,14 @@ export function PropertySummary({ recordId, onBrokerselected }) {
   return (
     <Boundary name="PropertySummary" props={{ recordId }}>
       <Card title="Property Summary" iconName="standard:account">
-        {hasProperty ? (
+        {hasProperty() ? (
           <>
             <div className={styles.pAroundMedium}>
               <h2 className="property-name">
-                {propertyName}
+                {propertyName()}
               </h2>
-              <FormattedNumber value={propertyPrice} formatStyle="currency" currencyCode="USD" />
-              <BrokerCard brokerName={brokerName} brokerId={brokerId} onContact={handleBrokerContact} />
+              <FormattedNumber value={propertyPrice()} formatStyle="currency" currencyCode="USD" />
+              <BrokerCard brokerName={brokerName()} brokerId={brokerId()} onContact={handleBrokerContact} />
             </div>
           </>
         ) : (

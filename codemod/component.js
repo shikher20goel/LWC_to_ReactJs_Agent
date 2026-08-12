@@ -50,6 +50,35 @@ function deThis(text) {
     return text.replace(/\bthis\./g, '');
 }
 
+/**
+ * `foo` -> `foo()` for names that were getters on the LWC class.
+ *
+ * deThis has already turned `this.foo` into a bare `foo`, so by the time this
+ * runs a getter read is indistinguishable from a local variable read. The
+ * guards below are what keep it from rewriting the wrong thing:
+ *
+ *   (?<![.\w$])  not a property access (`obj.foo`) and not mid-identifier
+ *   (?!\s*[(:=]) not already a call, not an object-literal key, not the left
+ *                side of an assignment
+ *
+ * A regex is the wrong tool for JS in general. It is used here because the
+ * bodies are emitted as TEXT — component.js never rebuilds an AST — and
+ * changing that is a much larger job than this fix. The guards make it safe
+ * for the shapes that actually occur; anything stranger is caught by the
+ * render smoke, which is where this class of bug was found in the first place.
+ */
+function rewriteGetterReads(text, getterNames) {
+    if (!getterNames.length) return text;
+    let out = text;
+    for (const n of getterNames) {
+        out = out.replace(
+            new RegExp(`(?<![.\\w$])${n}(?!\\s*[(:=])(?![\\w$])`, 'g'),
+            `${n}()`
+        );
+    }
+    return out;
+}
+
 function parseBundle(code) {
     return parse(code, {
         sourceType: 'module',
@@ -60,7 +89,7 @@ function parseBundle(code) {
 export function analyseComponentJs(code) {
     const ast = parseBundle(code);
     const out = {
-        apiProps: [], wires: [], getters: [], methods: [],
+        apiProps: [], apiSetters: [], wires: [], getters: [], methods: [],
         fields: [], lifecycle: [], emittedEvents: [], imports: [],
         todos: []
     };
@@ -123,8 +152,14 @@ export function analyseComponentJs(code) {
             continue;
         }
 
-        if (isApi) { out.apiProps.push(name); continue; }
-
+        // ACCESSORS BEFORE @api.
+        //
+        // `@api get x()` is a PUBLIC GETTER — a value the component computes
+        // and exposes read-only. It is not a prop the parent passes in.
+        // Testing isApi first made it one, and the getter body was discarded
+        // entirely: a component whose whole job was building a classification
+        // tree emitted an empty render, with "No review items flagged". Silent
+        // loss of the only logic in the file.
         if (m.kind === 'get') {
             const body = m.body.body;
             if (body.length === 1 && body[0].type === 'ReturnStatement') {
@@ -132,8 +167,34 @@ export function analyseComponentJs(code) {
             } else {
                 out.getters.push({ name, block: deThis(src(code, m.body)) });
             }
+            if (isApi) {
+                out.todos.push({
+                    kind: 'api-getter',
+                    detail: `@api get ${name}() is PUBLIC — a parent could read it off the `
+                        + 'element. React has no equivalent to reading a child\'s value: '
+                        + 'lift the computation to the parent, or expose it with '
+                        + 'useImperativeHandle. Kept as a local computed value for now.'
+                });
+            }
             continue;
         }
+
+        if (m.kind === 'set') {
+            // `@api set x(v)` IS written by the parent, so it stays a prop —
+            // but the setter BODY runs on every write and has nowhere to go in
+            // a function component. Emitting the prop while dropping the body
+            // would look converted and silently skip the side effect.
+            out.apiSetters.push({ name, body: deThis(src(code, m.body)) });
+            out.todos.push({
+                kind: 'api-setter',
+                detail: `@api set ${name}(v) has a body that runs whenever the parent `
+                    + 'writes it. Props are read-only in React — port the body to a '
+                    + `React.useEffect on [${name}] and verify ordering.`
+            });
+            continue;
+        }
+
+        if (isApi) { out.apiProps.push(name); continue; }
 
         if (m.type === 'ClassMethod' && m.kind === 'method') {
             if (['connectedCallback', 'disconnectedCallback', 'renderedCallback',
@@ -249,7 +310,22 @@ function rewriteDispatches(body, events) {
 
 export function generateComponent({ js, html, name, knownComponents = new Set(), componentDirs = new Map() }) {
     const a = analyseComponentJs(js);
-    const tpl = convertTemplate(html, { name });
+
+    // An `@api set x(v)` IS parent-written, so it belongs in the props
+    // signature; an `@api get x()` is not. Where a class declares BOTH for one
+    // name the prop wins and the getter is dropped — declaring
+    // `const x = () => ...` alongside a destructured `x` is a duplicate
+    // binding and will not parse.
+    //
+    // Computed here, before the template runs, because the template needs to
+    // know which names became lazy functions: `{foo}` has to become `{foo()}`
+    // for a getter and stay `{foo}` for a prop.
+    const setterNames = a.apiSetters.map((s) => s.name);
+    const propNames = [...new Set([...a.apiProps, ...setterNames])];
+    const lazyGetters = a.getters.filter((g) => !propNames.includes(g.name));
+    const lazyNames = lazyGetters.map((g) => g.name);
+
+    const tpl = convertTemplate(html, { name, getters: lazyNames });
     const Comp = pascal(name);
     const todos = [...a.todos];
 
@@ -366,6 +442,7 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
     // Child c-* components. Without these the generated file references an
     // undefined identifier — every multi-component conversion breaks at
     // runtime, and nothing catches it until render.
+    const missingChildren = [];
     for (const child of (tpl.childComponents || []).sort()) {
         if (knownComponents.has(child)) {
             // Each component lives in its own folder named after the LWC
@@ -376,8 +453,17 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
             todos.push({
                 kind: 'missing-dependency',
                 detail: `<${child}> is used but was not part of this conversion set. `
-                    + 'Convert it too, or the generated file will not resolve.'
+                    + 'Convert it too. A labelled placeholder is rendered in its place '
+                    + 'so the gap is visible in the preview instead of crashing it.'
             });
+            // A bare `<Example1/>` with no import is "Example1 is not defined" —
+            // the whole component is blank and the developer sees a stack
+            // trace, not the hole. The placeholder is deliberately loud and
+            // deliberately NOT an approximation of the child: it renders the
+            // name and nothing else, so it can never be mistaken for working
+            // output, and the oracle sees a boundary where the child belongs
+            // rather than a missing subtree.
+            missingChildren.push(child);
         }
     }
     for (const w of a.wires) {
@@ -391,7 +477,7 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
     // A default <slot> emits {children}; without destructuring it the generated
     // component throws "children is not defined" at render.
     const usesChildren = /\{children\}/.test(tpl.jsx || '');
-    const props = [...a.apiProps, ...eventProps, ...(tpl.namedSlots || []),
+    const props = [...propNames, ...eventProps, ...(tpl.namedSlots || []),
         ...(usesChildren ? ['children'] : [])];
 
     /* ---- body ---- */
@@ -414,10 +500,27 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
             : `  const ${w.property} = ${w.hook}(${cfg});`);
     }
 
-    for (const g of a.getters) {
-        if (g.expr !== undefined) lines.push(`  const ${g.name} = ${g.expr};`);
-        else {
-            lines.push(`  const ${g.name} = (() => ${g.block})();`);
+    // GETTERS STAY LAZY.
+    //
+    // An LWC getter runs only when something READS it, and runs again on every
+    // read. `const x = expr;` runs once, always, before the first render —
+    // which is a different program. It matters because a getter guarded by
+    // `<template if:true={open}>` is never called while `open` is false, so it
+    // is routinely written assuming data that has not arrived yet:
+    //
+    //     get options() { return this.items.map(...); }   // items is @api
+    //
+    // Hoisted, that throws before anything renders. On the first real org this
+    // blanked 4 components whose LWC originals were fine. A zero-arg function
+    // reproduces both properties — lazy, and re-evaluated per read.
+    const callGetters = (src) => rewriteGetterReads(src, lazyNames);
+
+    for (const g of lazyGetters) {
+        const others = lazyNames.filter((n) => n !== g.name);
+        if (g.expr !== undefined) {
+            lines.push(`  const ${g.name} = () => (${rewriteGetterReads(g.expr, others)});`);
+        } else {
+            lines.push(`  const ${g.name} = () => ${rewriteGetterReads(g.block, others)};`);
             todos.push({ kind: 'multi-statement-getter', detail: `get ${g.name}() has a block body — review.` });
         }
     }
@@ -425,7 +528,7 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
     for (const m of a.methods) {
         let body = rewriteDispatches(m.body, a.emittedEvents);
         body = rewriteStateAssignments(body, fieldNames, todos, `${m.name}()`);
-        lines.push(`  const ${m.name} = (${m.params.join(', ')}) => ${body};`);
+        lines.push(`  const ${m.name} = (${m.params.join(', ')}) => ${callGetters(body)};`);
     }
 
     for (const lc of a.lifecycle) {
@@ -473,9 +576,20 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
         ? `\n${a.moduleConsts.join('\n')}\n`
         : '';
 
+    // Stand-ins for children that were not converted. See the missing-dependency
+    // branch above for why these exist rather than a bare undefined reference.
+    const placeholderBlock = missingChildren.length
+        ? '\n/* NOT CONVERTED — placeholders so the gap is visible instead of fatal.\n'
+            + ' * Replace each with the real import once the child is converted. */\n'
+            + missingChildren.map((c) => `const ${c} = (props) => (\n`
+                + `  <Boundary name="${c}" props={props} base>\n`
+                + `    <span data-not-converted="${c}">[ ${c} — not converted ]</span>\n`
+                + '  </Boundary>\n);').join('\n') + '\n'
+        : '';
+
     const code = `${header}
 ${importLines.join('\n')}
-${todoBlock}${moduleConstBlock}
+${todoBlock}${moduleConstBlock}${placeholderBlock}
 export function ${Comp}({ ${props.join(', ')} }) {
 ${lines.join('\n')}
 

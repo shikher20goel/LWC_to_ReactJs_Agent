@@ -73,7 +73,7 @@ function componentName(tag) {
 function exprToSource(e, ctx) {
     if (!e) return '';
     if (e.type === 'Literal') return JSON.stringify(e.value);
-    if (e.type === 'Identifier') return e.name;
+    if (e.type === 'Identifier') return ctx.isGetter(e.name) ? `${e.name}()` : e.name;
     if (e.type === 'MemberExpression') {
         const obj = exprToSource(e.object, ctx);
         // Trap 8: `computed` is present at runtime but absent from the .d.ts.
@@ -192,6 +192,52 @@ function wrapExpr(body, depth) {
     return `${pad(depth)}{${body}}`;
 }
 
+/**
+ * Body for a .map() arrow that returns an expression.
+ *
+ * `{cond && (...)}` is valid as JSX CHILDREN but NOT as an arrow's expression
+ * body — there, JS reads the braces as a block or object literal and the file
+ * does not parse at all. Happens whenever a for:each body's only child is a
+ * conditional, which is common and produced two unparseable components on the
+ * first real org.
+ *
+ * Wrapping in a fragment puts the braces back into children position. Done
+ * only when needed, because a wrapper changes where React expects `key`, and
+ * the key directive is emitted on the element itself.
+ */
+/**
+ * The list handed to .map().
+ *
+ * MEASURED, not assumed — see fixtures/nullSafety.test.js, which renders a
+ * real LWC through the real engine:
+ *
+ *   for:each / iterator:* over undefined  ->  renders NOTHING, no error
+ *   {a.b} where a is undefined           ->  THROWS
+ *
+ * So iteration is the one place LWC is forgiving and a literal `.map()` is a
+ * crash the original never had. On the first real org that single difference
+ * blanked 9 of 20 components: an @api list is undefined until the parent
+ * passes it, which is exactly the state a preview renders in.
+ *
+ * The guard stops at the list. It deliberately does NOT extend to member
+ * access — `(a?.b ?? [])` would also swallow the `a is undefined` throw, and
+ * LWC throws there too. Suppressing a crash the original had is worse than
+ * reproducing it: the point of the migration is to surface behaviour
+ * differences, not to hide them behind a blank screen.
+ */
+function iterable(list) {
+    // Already parenthesised or a literal — no extra wrapping needed.
+    if (/^\[/.test(list.trim())) return list;
+    return `(${list} ?? [])`;
+}
+
+function mapBody(lines, depth) {
+    const body = lines.join('\n');
+    if (!body.trim().startsWith('{')) return body;
+    const p = pad(depth);
+    return `${p}<>\n${body}\n${p}</>`;
+}
+
 function emit(node, depth, ctx) {
     switch (node.type) {
         case 'Root':
@@ -236,7 +282,7 @@ function emit(node, depth, ctx) {
             const body = emitChildren(node.children, depth + 2, ctx).join('\n');
             ctx.popScope();
             const args = index ? `(${item}, ${index})` : `(${item})`;
-            return `${pad(depth)}{${list}.map(${args} => (\n${body}\n${pad(depth)}))}`;
+            return `${pad(depth)}{${iterable(list)}.map(${args} => (\n${mapBody([body], depth + 1)}\n${pad(depth)}))}`;
         }
 
         // Trap 2: iterator:* lands as ForOf.
@@ -248,9 +294,9 @@ function emit(node, depth, ctx) {
             ctx.pushScope([it]);
             const body = emitChildren(node.children, depth + 2, ctx).join('\n');
             ctx.popScope();
-            return `${pad(depth)}{${list}.map((__v, __i, __a) => { `
+            return `${pad(depth)}{${iterable(list)}.map((__v, __i, __a) => { `
                 + `const ${it} = { value: __v, index: __i, first: __i === 0, last: __i === __a.length - 1 }; `
-                + `return (\n${body}\n${pad(depth)}); })}`;
+                + `return (\n${mapBody([body], depth + 1)}\n${pad(depth)}); })}`;
         }
 
         case 'Slot': {
@@ -315,7 +361,15 @@ function emitElse(node, depth, ctx) {
  * Public API
  * ------------------------------------------------------------------ */
 
-export function convertTemplate(source, { name = 'component', stylePreset } = {}) {
+/**
+ * @param getters names the component exposes as `get x()`. They are emitted as
+ *   zero-arg functions (see codemod/component.js) because an LWC getter is
+ *   LAZY — the engine calls it only when the template actually reads it — and
+ *   a hoisted `const` is not. Every reference here therefore becomes `x()`.
+ */
+export function convertTemplate(source, {
+    name = 'component', stylePreset, getters = []
+} = {}) {
     const { root, warnings = [] } = parse(source, { name, namespace: 'c' });
 
     // Trap 5: parse() never throws.
@@ -350,7 +404,16 @@ export function convertTemplate(source, { name = 'component', stylePreset } = {}
         needsCssToStyle() { this._needsCssToStyle = true; },
         style(classAttr) { return this._sheet.add(classAttr); },
         pushScope(names) { this._scopes.push(names); },
-        popScope() { this._scopes.pop(); }
+        popScope() { this._scopes.pop(); },
+        _getters: new Set(getters),
+        /**
+         * A for:item named the same as a getter SHADOWS it, exactly as it does
+         * in the LWC template. Calling it would then invoke the loop variable.
+         */
+        isGetter(n) {
+            if (!this._getters.has(n)) return false;
+            return !this._scopes.some((s) => s.includes(n));
+        }
     };
 
     ctx._sheet = sheet;

@@ -163,11 +163,85 @@
     <escalate-always>true</escalate-always>
   </component>
   <component tag="lightning-modal-body" canonical="ModalBody" tier="H" uses="1">
-    <reason>As modal-header.</reason>
+    <reason>Same blocker as modal-header: only meaningful inside a component
+            that EXTENDS LightningModal, and that inheritance has no React
+            equivalent. Converting the body alone yields a fragment with no
+            dialog, no focus trap and no close contract.</reason>
     <escalate-always>true</escalate-always>
   </component>
   <component tag="lightning-modal-footer" canonical="ModalFooter" tier="H" uses="1">
-    <reason>As modal-header.</reason>
+    <reason>Same blocker as modal-header. The footer's buttons close the modal
+            through the inherited close() method, which does not exist once the
+            base class is gone — the buttons would render and do nothing.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+
+  <!-- Added after the first real-org run. Every tag below appeared in a
+       retrieved org and was previously uncatalogued, which meant the codemod
+       emitted <Accordion> etc. with no shim behind it and the preview died
+       with "Accordion is not defined". An uncatalogued warning is the correct
+       FIRST response; the correct SECOND response is to catalogue it. -->
+
+  <component tag="lightning-accordion" canonical="Accordion" tier="M" uses="3">
+    <props>activeSectionName, allowMultipleSectionsOpen</props>
+    <slots>default</slots>
+    <note>activeSectionName is a STRING when single-open and an ARRAY when
+          allow-multiple-sections-open. The shim accepts both.</note>
+    <targets><target lib="tbd" name="Accordion" fidelity="0.8"/></targets>
+  </component>
+
+  <component tag="lightning-accordion-section" canonical="AccordionSection" tier="M" uses="3">
+    <props>name, label</props>
+    <slots>default, actions</slots>
+    <note>Open state lives on the PARENT accordion, not here. A section
+          rendered outside an Accordion has no way to know if it is open —
+          the shim renders it expanded rather than blank.</note>
+  </component>
+
+  <component tag="lightning-avatar" canonical="Avatar" tier="M" uses="1">
+    <props>src, fallbackIconName, initials, alternativeText, size, variant</props>
+  </component>
+
+  <component tag="lightning-badge" canonical="Badge" tier="M" uses="2">
+    <props>label, iconName, iconPosition, variant</props>
+  </component>
+
+  <component tag="lightning-button-group" canonical="ButtonGroup" tier="M" uses="1">
+    <props></props>
+    <slots>default</slots>
+  </component>
+
+  <component tag="lightning-button-stateful" canonical="ButtonStateful" tier="M" uses="1">
+    <props>state, labelWhenOff, labelWhenOn, labelWhenHover, iconNameWhenOff,
+           iconNameWhenOn, iconNameWhenHover, variant, disabled, onClick</props>
+    <note>`state` is CONTROLLED by the owner in LWC too — the component does
+          not toggle itself. The shim must not add internal state or it will
+          diverge on click.</note>
+  </component>
+
+  <component tag="lightning-checkbox-group" canonical="CheckboxGroup" tier="M" uses="1">
+    <props>label, options, value, name, required, disabled, onChange</props>
+    <note>value is an ARRAY of selected values; event.detail.value is the new
+          array, not the toggled item.</note>
+  </component>
+
+  <component tag="lightning-pill" canonical="Pill" tier="M" uses="1">
+    <props>label, name, href, hasError, onRemove, onClick</props>
+  </component>
+
+  <component tag="lightning-dynamic-icon" canonical="DynamicIcon" tier="M" uses="1">
+    <props>type, option, alternativeText</props>
+    <note>Purely decorative animation (ea, waffle, trend, strength, score).
+          The shim renders a static equivalent — no animation.</note>
+    <targets><target lib="tbd" name="DynamicIcon" fidelity="0.5"/></targets>
+  </component>
+
+  <component tag="lightning-input-rich-text" canonical="InputRichText" tier="H" uses="1">
+    <reason>A Quill-backed WYSIWYG editor: format toolbar, allowed-formats
+            filtering, paste sanitisation and dirty tracking. A textarea
+            stand-in would look convertible and silently lose every format the
+            user typed. Pick a React rich-text editor deliberately and port the
+            allowed-formats list by hand.</reason>
     <escalate-always>true</escalate-always>
   </component>
 </catalog>

@@ -1,0 +1,30 @@
+<template>
+    <!-- ITERATION ONLY.
+         Anything that READS THROUGH the undefined value belongs in
+         nullSafetyProbeDeep: member access throws, and a throw anywhere in a
+         template aborts the entire render, which would make every assertion
+         here fail for the wrong reason. That is exactly what happened to the
+         first two drafts of this probe. -->
+
+    <!-- 1. for:each over an undefined value -->
+    <div class="iter">
+        <template for:each={undefinedList} for:item="row">
+            <span key={row.id}>{row.label}</span>
+        </template>
+    </div>
+
+    <!-- 2. iterator:* over an undefined value -->
+    <div class="iterof">
+        <template iterator:it={undefinedList}>
+            <span key={it.value.id}>{it.value.label}</span>
+        </template>
+    </div>
+
+    <!-- 3. truthiness of a plain undefined field (no access through it) -->
+    <template if:true={undefinedList}>
+        <span class="cond">shown</span>
+    </template>
+
+    <!-- 4. the undefined field rendered as text, not read through -->
+    <div class="text">{undefinedList}</div>
+</template>

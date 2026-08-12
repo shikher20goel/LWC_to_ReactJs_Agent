@@ -10,9 +10,9 @@ import getAccounts from '@salesforce/apex/AccountController.getAccounts';
 
 export function AccountList({ onAccountselected }) {
   const response = useApex(getAccounts, {});
-  const accounts = response && response.data ? response.data : [];
-  const hasAccounts = accounts.length > 0;
-  const hasError = Boolean(response && response.error);
+  const accounts = () => (response && response.data ? response.data : []);
+  const hasAccounts = () => (accounts().length > 0);
+  const hasError = () => (Boolean(response && response.error));
   const handleView = (event) => {
         onAccountselected?.({ accountId: event.target.dataset.id });
     };
@@ -20,10 +20,10 @@ export function AccountList({ onAccountselected }) {
   return (
     <Boundary name="AccountList" props={{}}>
       <Card title="Accounts" iconName="standard:account">
-        {hasAccounts ? (
+        {hasAccounts() ? (
           <>
             <ul>
-              {accounts.map((account) => (
+              {(accounts() ?? []).map((account) => (
                   <li className="account-row" key={account.Id}>
                     <p className="account-name">
                       {account.Name}
@@ -34,7 +34,7 @@ export function AccountList({ onAccountselected }) {
               ))}
             </ul>
           </>
-        ) : hasError ? (
+        ) : hasError() ? (
           <>
             <p className="error-state">
               Unable to load accounts
