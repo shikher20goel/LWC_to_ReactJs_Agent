@@ -35,3 +35,13 @@ export function boundary(name, props, children, { base = false } = {}) {
 export function slot(children) {
     return React.createElement('div', { 'data-slot': '' }, children);
 }
+
+/**
+ * JSX-friendly form, used by GENERATED components to declare their own
+ * boundary. Without it a generated component is invisible to the oracle —
+ * its root normalises as whatever it happens to render first, and the diff
+ * reports a bogus root mismatch against the LWC's `c-*` element.
+ */
+export function Boundary({ name, props, base, children }) {
+    return boundary(name, props, children, { base: Boolean(base) });
+}

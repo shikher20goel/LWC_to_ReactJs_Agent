@@ -1,6 +1,8 @@
 import React from 'react';
 import { boundary, slot } from './boundary.js';
 
+export { Boundary } from './boundary.js';
+
 /**
  * React equivalents of the catalog base components.
  *

@@ -54,9 +54,9 @@ such.
 | R7 | Apex parsing + dependency graph | Cluster C | — | ✅ `research/07` — `@apexdevtools/apex-parser@5.1.0` |
 | R8 | LDS semantics → fidelity-loss table | Cluster D | — | ✅ `research/08` — 27-row table, 4 real losses |
 | R9 | TanStack Query conventions for a shim | Cluster D | — | ✅ `research/08` |
-| R10 | Agent SDK vs Claude Code headless as loop runtime | Cluster E | — | ⬜ |
-| R11 | Agent Skills spec conformance | Cluster E | — | ⬜ |
-| R12 | Existing Ralph implementations to fork | Cluster E | — | ⬜ |
+| R10 | Agent SDK vs Claude Code headless as loop runtime | Cluster E | — | ✅ `research/09` — use Agent SDK |
+| R11 | Agent Skills spec conformance | Cluster E | — | ✅ `research/09` — 6 frontmatter fields |
+| R12 | Existing Ralph implementations to fork | Cluster E | — | ✅ `research/09` — fork nothing wholesale |
 | R13 | Capturing real org traffic for fixture replay | Cluster F | — | ⬜ |
 
 **R6/R7 precede the census tool.** Don't hand-roll a parser before checking
@@ -102,9 +102,9 @@ components; a typical org uses 20–25.
 |---|---|---|---|
 | D-1 | Template AST walker | R4 | ✅ `codemod/template.js` |
 | D-2 | Directive transforms (`for:each`, `lwc:if/elseif/else`, `iterator:*`) | D-1, R5 | ✅ — `lwc:dynamic` flagged, not converted |
-| D-3 | `@api` → props, lifecycle, scoped CSS (JS half — slots done) | D-1, R5 | ⬜ next |
+| D-3 | `@api`→props, `@wire`→hooks, getters, events (JS half) | D-1, R5 | ✅ `codemod/component.js` |
 | D-4 | Event transforms (`onclick={h}` → `onClick`) | D-1 | ✅ — custom-event casing flagged as unrecoverable |
-| D-5 | Benchmark codemod output against the oracle | D-2..D-4, O-* | 🔒 |
+| D-5 | **Benchmark codemod output against the oracle** | D-2..D-4, O-* | ✅ **CLOSED LOOP** — `oracle/generated.react.test.js` |
 
 Prefer deterministic code over LLM generation — every construct moved into the
 codemod is a construct the model can no longer get wrong.
@@ -116,10 +116,10 @@ codemod is a construct the model can no longer get wrong.
 | ID | Task | Depends | Status |
 |---|---|---|---|
 | E-1 | React base components (Card/Button/FormattedText/FormattedNumber) | — | ✅ partial — `shim/components.js` |
-| E-2 | `useRecord` / `useApex` on TanStack Query, with `enabled` guards | R8, R9 | ⬜ **unblocked** |
-| E-3 | Query-key factory + invalidation graph | R9 | ⬜ **unblocked** |
+| E-2 | `useRecord` / `useApex` with `enabled` guards | R8, R9 | ✅ `shim/runtime.js` |
+| E-3 | Query-key factory + invalidation graph | R9 | ✅ `shim/keys.js` — dev-throws on unbranded keys |
 | E-4 | `<fidelity-loss>` table — F8/F9/F14/F16 | R8 | ⬜ **unblocked** |
-| E-5 | Frozen shim tests (never edited to make a migration pass) | E-2 | 🔒 |
+| E-5 | Frozen shim tests | E-2 | ✅ 17 tests, marked frozen per rule 2 |
 
 ---
 
