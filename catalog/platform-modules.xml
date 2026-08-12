@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<platform-modules schema="1.0">
+  <!--
+    What every `lightning/*` and `@salesforce/*` import becomes in React.
+
+    Measured, not guessed: counts are occurrences across all 133 components in
+    trailheadapps/lwc-recipes. Ordered by real usage.
+
+    status:
+      shim      a React equivalent exists in @migration/salesforce-runtime
+      token     a compile-time VALUE the platform injects; becomes a build-time
+                constant or a provider value
+      escalate  NO honest React equivalent. Emitting something plausible here
+                would be worse than stopping — the component depends on
+                Salesforce-host behaviour we cannot reproduce off-platform.
+
+    Adding an `escalate` module to `shim` because it is inconvenient is the
+    same failure as widening component-owned to silence an unmapped class: it
+    turns a visible gap into an invisible one.
+  -->
+
+  <!-- ===================== navigation & routing ===================== -->
+  <module id="lightning/navigation" uses="14" status="shim"
+          exports="NavigationMixin"
+          react="useNavigation"
+          note="PageReference is Salesforce-specific. The shim maps the common
+                page types (recordPage, objectPage, webPage, namedPage) to
+                routes; anything else surfaces at runtime rather than guessing."/>
+
+  <module id="lightning/pageReferenceUtils" uses="1" status="shim"
+          exports="encodeDefaultFieldValues,decodeDefaultFieldValues"
+          react="encodeDefaultFieldValues,decodeDefaultFieldValues"
+          note="Pure string encoding — portable as-is."/>
+
+  <!-- ===================== notifications & dialogs ===================== -->
+  <module id="lightning/platformShowToastEvent" uses="13" status="shim"
+          exports="ShowToastEvent" react="useToast"
+          note="LWC fires a DOM event the host catches. React has no host, so
+                the shim provides a toast context. Behaviour differs: without a
+                provider the toast is a no-op, where LWC would bubble to the
+                Lightning host."/>
+
+  <module id="lightning/alert"   uses="2" status="shim" exports="default" react="alert"/>
+  <module id="lightning/confirm" uses="1" status="shim" exports="default" react="confirm"/>
+  <module id="lightning/prompt"  uses="1" status="shim" exports="default" react="prompt"/>
+  <module id="lightning/modal"   uses="1" status="shim" exports="default" react="Modal"
+          note="LightningModal is a base CLASS a component extends — not a
+                function. Conversion needs a class-to-component rewrite, so the
+                codemod flags it rather than pretending."/>
+
+  <!-- ===================== data ===================== -->
+  <module id="lightning/uiRecordApi" status="shim"
+          exports="getRecord,getFieldValue,getFieldDisplayValue,createRecord,updateRecord,deleteRecord,notifyRecordUpdateAvailable,getRecordNotifyChange"
+          react="useRecord,getFieldValue,getFieldDisplayValue,createRecord,updateRecord,deleteRecord,useNotifyRecordUpdateAvailable"/>
+
+  <module id="lightning/uiObjectInfoApi" uses="3" status="shim"
+          exports="getObjectInfo,getPicklistValues,getPicklistValuesByRecordType"
+          react="useObjectInfo,usePicklistValues,usePicklistValuesByRecordType"/>
+
+  <module id="lightning/uiListApi" uses="1" status="shim"
+          exports="getListUi,getListInfoByName" react="useListUi,useListInfo"/>
+
+  <module id="lightning/graphql" uses="12" status="shim"
+          exports="graphql,gql" react="useGraphQL,gql"
+          note="UI API GraphQL. The shim issues the same query; the RESPONSE
+                shape is Salesforce's, so downstream field access is unchanged."/>
+
+  <module id="lightning/refresh" uses="2" status="escalate"
+          exports="RefreshEvent,registerRefreshHandler,unregisterRefreshHandler"
+          reason="RefreshView is an ORDERED, VETOABLE breadth-first refresh of a
+                  container tree (research/08 F14). TanStack Query has no
+                  analogue — invalidateQueries is unordered and cannot be
+                  vetoed. A naive mapping silently changes refresh semantics."/>
+
+  <module id="lightning/messageService" uses="2" status="shim"
+          exports="publish,subscribe,unsubscribe,createMessageContext,releaseMessageContext,APPLICATION_SCOPE,MessageContext"
+          react="useMessageChannel"
+          note="LMS crosses Aura/LWC/Visualforce boundaries on the platform. The
+                shim is in-app only — cross-technology messaging does not exist
+                off-platform. Flagged where it matters."/>
+
+  <!-- ===================== host-only: no React equivalent ===================== -->
+  <module id="lightning/platformWorkspaceApi" uses="10" status="escalate"
+          exports="IsConsoleNavigation,getFocusedTabInfo,openTab,openSubtab,closeTab,setTabLabel,setTabIcon,refreshTab,focusTab,disableTabClose"
+          reason="Drives the Salesforce CONSOLE tab shell. There is no tab shell
+                  off-platform, so every one of these is a no-op or a lie.
+                  Whatever replaces the console is a product decision."/>
+
+  <module id="lightning/actions" uses="1" status="escalate"
+          exports="CloseActionScreenEvent"
+          reason="Quick Actions are a Salesforce UI surface. Off-platform there
+                  is no action screen to close."/>
+
+  <module id="lightning/logger" uses="1" status="shim" exports="default" react="logger"
+          note="Maps to console/telemetry. Salesforce-side log ingestion is lost."/>
+
+  <module id="lightning/platformResourceLoader" uses="3" status="escalate"
+          exports="loadScript,loadStyle"
+          reason="Loads a static resource at runtime. In React the dependency
+                  should be a real npm import resolved at BUILD time — keeping
+                  runtime script injection would carry the anti-pattern across.
+                  Needs a human decision per resource (chartjs, d3, fullcalendar)."/>
+
+  <module id="lightning/datatable" uses="1" status="escalate"
+          exports="default"
+          reason="Tier H — custom data types, inline edit, virtualisation."/>
+
+  <!-- ===================== @salesforce/* value tokens ===================== -->
+  <module id="@salesforce/user/Id" uses="3" status="token" react="useCurrentUser().id"/>
+  <module id="@salesforce/i18n/currency" uses="3" status="token" react="i18n.currency"/>
+  <module id="@salesforce/i18n/locale" uses="1" status="token" react="i18n.locale"/>
+  <module id="@salesforce/resourceUrl/*" uses="6" status="token"
+          react="a build-time asset import"
+          note="Static resources become bundled assets. The URL differs, so any
+                code string-building on it needs review."/>
+  <module id="@salesforce/contentAssetUrl/*" uses="1" status="token" react="a build-time asset import"/>
+  <module id="@salesforce/messageChannel/*" uses="2" status="token" react="a channel identifier constant"/>
+  <module id="@salesforce/customPermission/*" uses="1" status="escalate"
+          reason="Permission checks are AUTHORISATION. A hard-coded or
+                  client-side guess is a security defect, not a styling one.
+                  Must resolve against a real permission source."/>
+  <module id="@salesforce/apex" uses="5" status="shim" exports="refreshApex"
+          react="useRefreshApex"
+          note="The BARE module (not @salesforce/apex/Class.method) exports
+                refreshApex, which binds to one wire instance's config."/>
+
+  <!-- ===================== not Salesforce ===================== -->
+  <module id="@lwc/state" uses="2" status="escalate"
+          exports="defineState"
+          reason="LWC's own signals-style state primitive. React has useState /
+                  useSyncExternalStore; the mapping is not mechanical."/>
+</platform-modules>

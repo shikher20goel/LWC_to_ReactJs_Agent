@@ -22,8 +22,13 @@
 import { parse } from '@babel/parser';
 import { convertTemplate } from './template.js';
 import { loadCatalog } from '../catalog/load.js';
+import { loadPlatformModules } from '../catalog/slds-load.js';
 
 const RUNTIME_PKG = '@migration/salesforce-runtime';
+
+// catalog/platform-modules.xml — which lightning/* and @salesforce/* modules
+// have an honest React equivalent, and which must escalate.
+const PLATFORM = loadPlatformModules();
 
 const LDS_ADAPTERS = {
     getRecord: 'useRecord',
@@ -305,12 +310,55 @@ export function generateComponent({ js, html, name, knownComponents = new Set() 
             importLines.push(`import ${imp.specifiers[0]} from '${src2}';`);
             continue;
         }
+        // c/* is a SIBLING component, not a platform module. It resolves to
+        // the generated .jsx next door.
+        if (src2.startsWith('c/')) {
+            const child = pascal(src2.slice(2));
+            if (knownComponents.has(child)) {
+                importLines.push(`import { ${child} } from './${child}.jsx';`);
+            } else {
+                todos.push({
+                    kind: 'missing-dependency',
+                    detail: `${src2} is imported but was not part of this conversion set.`
+                });
+            }
+            continue;
+        }
+
+        // Platform modules are CLASSIFIED, not guessed. catalog/platform-modules.xml
+        // records which have an honest React equivalent and which do not.
+        const mod = PLATFORM.lookup(src2);
+        if (mod && mod.status === 'shim') {
+            const names = mod.react.length ? mod.react : imp.specifiers;
+            importLines.push(`import { ${names.join(', ')} } from '${RUNTIME_PKG}';`);
+            if (mod.note) todos.push({ kind: 'platform-shim', detail: `${src2}: ${mod.note}` });
+            continue;
+        }
+        if (mod && mod.status === 'token') {
+            importLines.push(`// ${src2} -> ${mod.react.join(', ') || 'build-time value'}`);
+            todos.push({
+                kind: 'platform-token',
+                detail: `${src2} is a compile-time value the platform injects. `
+                    + `Becomes ${mod.react.join(', ') || 'a build-time constant'}.`
+                    + (mod.note ? ` ${mod.note}` : '')
+            });
+            continue;
+        }
+        if (mod && mod.status === 'escalate') {
+            importLines.push(`// ESCALATED: ${src2} — ${mod.reason}`);
+            todos.push({
+                kind: 'platform-escalate',
+                detail: `${src2} has NO honest React equivalent. ${mod.reason}`
+            });
+            continue;
+        }
+
         importLines.push(
             `// TODO: unmapped import — ${src2} (${imp.specifiers.join(', ')})`
         );
         todos.push({
             kind: 'unmapped-import',
-            detail: `${src2} has no React equivalent yet. Map it or replace by hand.`
+            detail: `${src2} is not in catalog/platform-modules.xml. Classify it there.`
         });
     }
 

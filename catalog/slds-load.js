@@ -107,3 +107,61 @@ export function loadSlds({ force = false } = {}) {
     };
     return cached;
 }
+
+/* ------------------------------------------------------------------ *
+ * Platform modules — catalog/platform-modules.xml
+ * ------------------------------------------------------------------ */
+
+let modCache = null;
+
+export function loadPlatformModules({ force = false } = {}) {
+    if (modCache && !force) return modCache;
+
+    const tried = [];
+    let here = null;
+    try {
+        // eslint-disable-next-line camelcase
+        if (typeof __dirname !== 'undefined') here = __dirname;
+        else here = path.dirname(fileURLToPath(import.meta.url));
+    } catch { /* transpiled */ }
+    if (here) tried.push(path.join(here, 'platform-modules.xml'));
+    let dir = process.cwd();
+    for (let i = 0; i < 6; i++) {
+        tried.push(path.join(dir, 'catalog', 'platform-modules.xml'));
+        const parent = path.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+    }
+    const file = tried.find((c) => fs.existsSync(c));
+    if (!file) throw new Error('catalog/platform-modules.xml not found:\n  ' + tried.join('\n  '));
+
+    const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@' });
+    const doc = parser.parse(fs.readFileSync(file, 'utf8'))['platform-modules'];
+
+    const byId = {};
+    const wildcards = [];
+    for (const m of asArray(doc.module)) {
+        const entry = {
+            id: m['@id'],
+            status: m['@status'],
+            exports: String(m['@exports'] || '').split(',').map((x) => x.trim()).filter(Boolean),
+            react: String(m['@react'] || '').split(',').map((x) => x.trim()).filter(Boolean),
+            uses: Number(m['@uses'] || 0),
+            note: m['@note'] ? String(m['@note']).replace(/\s+/g, ' ').trim() : undefined,
+            reason: m['@reason'] ? String(m['@reason']).replace(/\s+/g, ' ').trim() : undefined
+        };
+        if (entry.id.endsWith('/*')) wildcards.push({ prefix: entry.id.slice(0, -1), entry });
+        else byId[entry.id] = entry;
+    }
+
+    modCache = {
+        byId,
+        lookup(source) {
+            if (byId[source]) return byId[source];
+            const w = wildcards.find((x) => source.startsWith(x.prefix));
+            return w ? w.entry : undefined;
+        },
+        all: () => Object.values(byId)
+    };
+    return modCache;
+}

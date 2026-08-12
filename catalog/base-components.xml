@@ -109,4 +109,57 @@
     <reason>As datatable, plus lazy hierarchy loading.</reason>
     <escalate-always>true</escalate-always>
   </component>
+
+  <!-- Added from measured usage across all 133 lwc-recipes components. -->
+  <component tag="lightning-spinner" canonical="Spinner" tier="M" uses="5">
+    <props>size, variant, alternativeText</props>
+  </component>
+  <component tag="lightning-combobox" canonical="Combobox" tier="M" uses="5">
+    <props>label, value, options, placeholder, required, disabled, name, variant</props>
+    <events><event from="onchange" to="onChange"/></events>
+  </component>
+  <component tag="lightning-button-icon" canonical="ButtonIcon" tier="M" uses="4">
+    <props>iconName, variant, size, alternativeText, title, disabled, name</props>
+    <events><event from="onclick" to="onClick"/></events>
+  </component>
+  <component tag="lightning-formatted-date-time" canonical="FormattedDateTime" tier="M" uses="1">
+    <props>value, year, month, day, hour, minute, second, timeZone, weekday</props>
+    <note>Stub renders NO text off-platform. Compare props, never rendered text.</note>
+  </component>
+  <component tag="lightning-radio-group" canonical="RadioGroup" tier="M" uses="1">
+    <props>label, options, value, type, required, disabled, name</props>
+    <events><event from="onchange" to="onChange"/></events>
+  </component>
+  <component tag="lightning-tree" canonical="Tree" tier="M" uses="1">
+    <props>items, header, selectedItem</props>
+  </component>
+  <component tag="lightning-pill-container" canonical="PillContainer" tier="M" uses="1">
+    <props>items, label, isCollapsible, isExpanded</props>
+  </component>
+
+  <!-- Tier H additions: metadata- or host-driven, not translatable. -->
+  <component tag="lightning-record-picker" canonical="RecordPicker" tier="H" uses="3">
+    <reason>Server-side SOSL/SOQL search, FLS-filtered results, and object
+            metadata drive both the query and the display. Reproducing it is a
+            search product, not a translation.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+  <component tag="lightning-quick-action-panel" canonical="QuickActionPanel" tier="H" uses="1">
+    <reason>Renders inside the Salesforce quick-action surface, which does not
+            exist off-platform.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+  <component tag="lightning-modal-header" canonical="ModalHeader" tier="H" uses="1">
+    <reason>Only meaningful inside LightningModal, a base CLASS a component
+            extends. Needs a class-to-component rewrite.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+  <component tag="lightning-modal-body" canonical="ModalBody" tier="H" uses="1">
+    <reason>As modal-header.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+  <component tag="lightning-modal-footer" canonical="ModalFooter" tier="H" uses="1">
+    <reason>As modal-header.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
 </catalog>
