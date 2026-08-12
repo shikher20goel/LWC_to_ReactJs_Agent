@@ -84,15 +84,38 @@ describe('DIFFERENTIAL ORACLE — accountList: LWC vs React', () => {
 
     /* ---------- negative control ---------- */
 
-    it('CATCHES a dropped field — the oracle must be able to fail', async () => {
+    it('CATCHES a dropped field — and ATTRIBUTES it to the right node', async () => {
         const lwc = await lwcTree();
         const react = await reactTree(AccountListDroppedField, { accounts: ACCOUNTS });
 
         const diffs = diffTrees(lwc, react);
         console.log('\nNEGATIVE CONTROL — dropped Industry field:\n' + formatDiff(diffs));
 
-        expect(diffs.length).toBeGreaterThan(0);
-        // Every row lost its FormattedText, so the oracle should say so.
-        expect(diffs.some((d) => JSON.stringify(d.lwc).includes('FormattedText'))).toBe(true);
+        // Three rows each lost exactly one node. Detection is not enough —
+        // the agent acts on the FIRST line, so every diff must name the
+        // node that is actually missing. Index alignment used to report 15
+        // diffs here, opening with "tag: FormattedText -> Button".
+        expect(diffs).toHaveLength(3);
+        expect(diffs.every((d) => d.kind === 'presence')).toBe(true);
+        expect(diffs.every((d) => d.lwc === '◆FormattedText')).toBe(true);
+        expect(diffs.every((d) => d.detail === 'missing in React')).toBe(true);
+    });
+
+    it('CATCHES a dropped ROW without cascading onto its siblings', async () => {
+        // React renders accounts 1 and 3 — the middle row is gone. Every
+        // surviving row is byte-identical, so tier-1 fingerprint alignment
+        // should pin them and report exactly one deletion.
+        const lwc = await lwcTree();
+        const react = await reactTree(AccountList, {
+            accounts: [ACCOUNTS[0], ACCOUNTS[2]]
+        });
+
+        const diffs = diffTrees(lwc, react);
+        console.log('\nNEGATIVE CONTROL — dropped middle row:\n' + formatDiff(diffs));
+
+        expect(diffs).toHaveLength(1);
+        expect(diffs[0].kind).toBe('presence');
+        expect(diffs[0].lwc).toBe('·li');
+        expect(diffs[0].path).toContain('[1]');   // the MIDDLE row, not the last
     });
 });

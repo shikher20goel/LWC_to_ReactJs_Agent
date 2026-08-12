@@ -60,16 +60,16 @@ The oracle suite must pass. This is the gate.
   id (see `oracle/accountList.test.js`), or promote `data-id` to
   `STRUCTURAL_ATTRS` if the census shows heavy `data-*` use for identity.
 
-- **`diffTrees` matches children POSITIONALLY, so one removal cascades.**
-  Dropping a single child shifts every later sibling, and the diff reports
-  the shift rather than the removal.
-  *Diff signature:* 3 missing `FormattedText` nodes reported as 15 diffs —
-  `tag: FormattedText→Button`, three spurious prop mismatches per row, then
-  `presence: missing in React` for the last child. Measured, not theoretical:
-  `oracle/accountList.react.test.js` negative control.
-  The defect IS caught, but the first line of output names the wrong node.
-  Fix before the agent consumes diffs unattended: align children by LCS (or
-  by a key when the template supplies one) instead of by index.
+- ~~`diffTrees` matches children positionally, so one removal cascades.~~
+  **FIXED.** Children are aligned in two tiers — LCS over a deep fingerprint
+  (pins identical subtrees, catches a dropped ROW), then LCS over tag within
+  each gap (pins same-kind nodes whose contents changed, catches a dropped
+  CHILD in every row). 15 diffs → 3, each naming the right node.
+  **Do not "simplify" this back to index matching.** Tier 1 alone degrades to
+  all-delete + all-insert the moment every sibling changed; tier 2 alone
+  mis-aligns same-tag list rows. Both negative controls in
+  `oracle/accountList.react.test.js` assert exact diff counts and will fail
+  loudly if either tier is removed.
 
 ## React side of the oracle
 
