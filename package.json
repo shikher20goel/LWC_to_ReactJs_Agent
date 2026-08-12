@@ -12,7 +12,8 @@
     "oracle": "jest oracle/normalise.test.js --silent=false",
     "census": "node census/run.js",
     "codemod": "jest codemod --silent=false",
-    "generate": "node codemod/generate.js"
+    "generate": "node codemod/generate.js",
+    "fixtures:check": "jest fixtures --silent=false"
   },
   "devDependencies": {
     "@apexdevtools/apex-parser": "^5.1.0",

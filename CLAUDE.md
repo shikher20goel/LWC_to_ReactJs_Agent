@@ -32,6 +32,21 @@ The oracle suite must pass. This is the gate.
 6. **Fixtures must use the real nested LDS shape** — `fields.X.value`, never
    a flattened object. A flat fixture blinds the oracle to the `[object
    Object]` defect, which is the most common conversion bug.
+7. **NEVER commit real customer data.** Fixtures are synthetic — derived from
+   `ObjectInfo` *metadata*, never from records. Specifically:
+   - Do not capture production or Full/Partial Copy sandbox traffic. Those
+     hold real data. Developer / Dev Pro / scratch orgs are metadata-only and
+     safe by construction — use those.
+   - A "sanitised" HAR strips **credentials only**. Response bodies still
+     contain every customer record. Sanitised is not anonymous.
+   - Data Mask is pseudonymisation, not GDPR anonymisation, and is
+     sandbox-only. It does not make data safe to commit.
+   - Two facts make this effectively irreversible: fixtures enter an LLM
+     context, which makes the model provider a sub-processor; and git history
+     makes an Art. 17 erasure request practically unsatisfiable. There is no
+     clean undo.
+   If a fixture might contain real data, STOP and flag for human review.
+   `npm run fixtures:check` is a heuristic backstop, not permission.
 
 ## Oracle invariants — discovered by the S-1 spike, do not regress
 

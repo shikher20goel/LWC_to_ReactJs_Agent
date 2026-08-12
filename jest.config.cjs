@@ -28,6 +28,7 @@ module.exports = {
         '<rootDir>/oracle/**/*.test.js',
         '<rootDir>/codemod/**/*.test.js',
         '<rootDir>/census/**/*.test.js',
-        '<rootDir>/shim/**/*.test.js'
+        '<rootDir>/shim/**/*.test.js',
+        '<rootDir>/fixtures/**/*.test.js'
     ]
 };

@@ -44,6 +44,12 @@ such.
 
 ## Phase A — Research (unblocked, runs without the org)
 
+**All 13 research questions are answered.** R13 concluded with a *negative*
+result worth keeping: real-traffic capture should NOT be built. Capture buys
+shape fidelity, not value fidelity, and a scratch org returns a structurally
+identical `RecordRepresentation`. Synthetic + adversarial wins on merit, and
+avoids a compliance problem with no clean undo (see `CLAUDE.md` rule 7).
+
 | ID | Task | Source | Depends | Status |
 |---|---|---|---|---|
 | R1–R3 | Oracle feasibility | Cluster A | — | ✅ `research/04` |
@@ -57,7 +63,7 @@ such.
 | R10 | Agent SDK vs Claude Code headless as loop runtime | Cluster E | — | ✅ `research/09` — use Agent SDK |
 | R11 | Agent Skills spec conformance | Cluster E | — | ✅ `research/09` — 6 frontmatter fields |
 | R12 | Existing Ralph implementations to fork | Cluster E | — | ✅ `research/09` — fork nothing wholesale |
-| R13 | Capturing real org traffic for fixture replay | Cluster F | — | ⬜ |
+| R13 | Capturing real org traffic for fixture replay | Cluster F | — | ✅ `research/10` — verdict: **do NOT build capture** |
 
 **R6/R7 precede the census tool.** Don't hand-roll a parser before checking
 what exists.
@@ -75,7 +81,7 @@ what exists.
 | O-5 | Accessibility-tree parity diff (`dom-accessibility-api`) | check 5 of the S6 gate | O-1 | ⬜ |
 | O-6 | axe-core rule audit (separate from parity) | a faithful conversion of an inaccessible LWC is still inaccessible | — | ⬜ |
 | O-7 | Event-log diff | composed events already proven to cross boundaries (F6) | O-1 | ⬜ |
-| O-8 | Fixture schema validator — enforce nested LDS shape | a flattened fixture blinds the oracle to `[object Object]` | — | ⬜ |
+| O-8 | Fixture validator — shape + provenance | blocks flattened fixtures AND real customer data | — | ✅ `fixtures/validate.js` |
 | O-9 | Catalog loader — replace the hardcoded `CATALOG` in `normalise.js` | catalog is a blocking dependency; the stand-in is technical debt | — | ⬜ |
 
 ---
