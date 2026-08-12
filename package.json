@@ -20,7 +20,7 @@
     "apex:facade": "node apex/generate-facade.js force-app/main/default/classes apex/generated"
   },
   "devDependencies": {
-    "@apexdevtools/apex-parser": "^5.1.0",
+    "@apexdevtools/apex-parser": "file:vendor/apexdevtools-apex-parser-5.1.0.tgz",
     "@babel/plugin-transform-modules-commonjs": "^7.29.7",
     "@babel/preset-react": "^7.29.7",
     "@lwc/template-compiler": "8.28.2",

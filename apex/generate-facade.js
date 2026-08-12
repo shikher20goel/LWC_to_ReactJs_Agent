@@ -33,24 +33,15 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { ApexParserFactory } from '@apexdevtools/apex-parser';
-
-const txt = (n) => {
-    try { return typeof n.getText === 'function' ? n.getText() : (n.text || ''); }
-    catch { return ''; }
-};
-
-function walk(node, fn) {
-    if (!node || typeof node !== 'object') return;
-    fn(node);
-    for (const c of node.children || []) walk(c, fn);
-}
+// The parser is reached ONLY through apex/parser.js — see that file for why
+// the dependency is vendored rather than inlined.
+import { parseApex, walk, nodeText as txt, nodeType, CONTEXT } from './parser.js';
 
 /** Formal parameters, read from the tree — getText() strips whitespace. */
 function formalParams(declNode) {
     const params = [];
     walk(declNode, (n) => {
-        if (n.constructor && n.constructor.name === 'FormalParameterContext') {
+        if (nodeType(n) === CONTEXT.FORMAL_PARAMETER) {
             const kids = (n.children || []).map(txt).filter(Boolean);
             if (kids.length >= 2) {
                 params.push({ type: kids.slice(0, -1).join(''), name: kids[kids.length - 1] });
@@ -61,7 +52,7 @@ function formalParams(declNode) {
 }
 
 export function analyseApexClass(source, fileName) {
-    const cu = ApexParserFactory.createParser(source).compilationUnit();
+    const cu = parseApex(source);
     const className = (source.match(/\bclass\s+(\w+)/) || [])[1] || path.basename(fileName, '.cls');
     const sharing = /\bwith\s+sharing\b/i.test(source) ? 'with sharing'
         : (/\bwithout\s+sharing\b/i.test(source) ? 'without sharing'
@@ -69,7 +60,7 @@ export function analyseApexClass(source, fileName) {
 
     const methods = [];
     walk(cu, (n) => {
-        if (!n.constructor || n.constructor.name !== 'ClassBodyDeclarationContext') return;
+        if (nodeType(n) !== CONTEXT.CLASS_BODY_DECLARATION) return;
         const body = txt(n);
         if (!body.includes('AuraEnabled')) return;
 
@@ -78,7 +69,7 @@ export function analyseApexClass(source, fileName) {
 
         let decl = null;
         walk(n, (m) => {
-            if (!decl && m.constructor && m.constructor.name === 'MethodDeclarationContext') decl = m;
+            if (!decl && nodeType(m) === CONTEXT.METHOD_DECLARATION) decl = m;
         });
         if (!decl) return;
 
