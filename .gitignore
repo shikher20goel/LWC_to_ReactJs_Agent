@@ -11,3 +11,6 @@ authFiles/
 census/raw/
 fixtures/recorded/
 trace/
+
+# agent scratch probes (kept on disk, not versioned)
+probe*.mjs
