@@ -7,7 +7,7 @@ import React from 'react';
 import styles from './BrokerCard.module.css';
 import { Boundary, Button } from '@migration/salesforce-runtime/components';
 
-export function BrokerCard({ brokerName, brokerId, onContact }) {
+export function BrokerCard({ brokerName, brokerId, onContact, footer }) {
   const handleContact = () => {
         onContact?.({ brokerId: brokerId });
     };
@@ -19,7 +19,7 @@ export function BrokerCard({ brokerName, brokerId, onContact }) {
           {brokerName}
         </p>
         <Button label="Contact" variant="brand" iconName="utility:email" onClick={handleContact} />
-        {props.slots?.footer}
+        {footer}
       </div>
     </Boundary>
   );

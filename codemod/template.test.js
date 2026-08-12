@@ -149,8 +149,14 @@ describe('CODEMOD — template to JSX', () => {
     it('emits children for a default slot and a named slot', () => {
         const d = conv(tpl('<div><slot></slot></div>'));
         expect(d.jsx).toContain('{children}');
+        // A named slot becomes its OWN prop. The previous form emitted
+        // props.slots?.footer, referencing a `props` object the destructured
+        // signature never creates — "props is not defined" at render, on every
+        // component with a named slot. Caught by the live preview, not by a test.
         const n = conv(tpl('<div><slot name="footer"></slot></div>'));
-        expect(n.jsx).toContain('slots?.footer');
+        expect(n.jsx).toContain('{footer}');
+        expect(n.jsx).not.toContain('props.');
+        expect(n.namedSlots).toEqual(['footer']);
     });
 });
 

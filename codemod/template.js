@@ -255,9 +255,13 @@ function emit(node, depth, ctx) {
 
         case 'Slot': {
             const name = node.slotName || '';
-            return name
-                ? `${pad(depth)}{props.slots?.${camel(name)}}`
-                : `${pad(depth)}{children}`;
+            // A named slot becomes its OWN prop. Emitting props.slots?.x
+            // referenced a `props` object that the destructured signature
+            // never creates — "props is not defined" at render, on every
+            // component with a named slot.
+            if (!name) return `${pad(depth)}{children}`;
+            ctx.namedSlot(camel(name));
+            return `${pad(depth)}{${camel(name)}}`;
         }
 
         case 'Element':
@@ -335,12 +339,14 @@ export function convertTemplate(source, { name = 'component', stylePreset } = {}
         _warnings: [],
         _escalations: [],
         _children: new Set(),
+        _namedSlots: new Set(),
         _needsCssToStyle: false,
         _sheet: null,
         _scopes: [],
         warn(kind, message) { this._warnings.push({ kind, message }); },
         escalate(tag) { this._escalations.push(tag); },
         child(name) { this._children.add(name); },
+        namedSlot(name) { this._namedSlots.add(name); },
         needsCssToStyle() { this._needsCssToStyle = true; },
         style(classAttr) { return this._sheet.add(classAttr); },
         pushScope(names) { this._scopes.push(names); },
@@ -357,6 +363,7 @@ export function convertTemplate(source, { name = 'component', stylePreset } = {}
         warnings: ctx._warnings,
         escalations: ctx._escalations,
         childComponents: [...ctx._children],
+        namedSlots: [...ctx._namedSlots],
         needsCssToStyle: ctx._needsCssToStyle,
         css: sheet.toCss(),
         usesStyles: !sheet.isEmpty,

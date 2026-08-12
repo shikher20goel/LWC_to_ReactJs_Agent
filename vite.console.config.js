@@ -18,6 +18,11 @@ const root = path.dirname(fileURLToPath(import.meta.url));
  * Vite dev server and must never be exposed. Fixed argv, no shell, and the
  * component name is validated before touching the filesystem.
  */
+// Where the console reads from. Override with CONSOLE_SRC / CONSOLE_OUT to
+// point at the demo corpus instead of a real org.
+const SRC = process.env.CONSOLE_SRC || 'force-app';
+const OUT = process.env.CONSOLE_OUT || 'react/generated';
+
 function consoleApi() {
     const run = (script, args) => new Promise((resolve) => {
         execFile(process.execPath, [path.join(root, script), ...args],
@@ -42,12 +47,20 @@ function consoleApi() {
                 };
 
                 if (req.url === '/api/generate' && req.method === 'POST') {
-                    const gen = await run('codemod/generate.js', ['corpus/lwc-recipes', 'react/corpus']);
+                    // force-app is where the user retrieves their org. Hardcoding
+                    // the demo corpus here meant pressing Generate overwrote the
+                    // graph with sample data while the preview looked in
+                    // react/generated — every component then read
+                    // "not generated yet". SRC/OUT must match what the preview
+                    // globs, or the console silently describes a different repo.
+                    const gen = await run('codemod/generate.js', [SRC, OUT]);
                     if (!gen.ok) return json({ ok: false, error: gen.stderr.slice(0, 500) }, 500);
-                    const g = await run('agent/graph.js', ['corpus/lwc-recipes', 'knowledge/graph.json']);
+                    const g = await run('agent/graph.js', [SRC, 'knowledge/graph.json']);
                     const m = /Generated (\d+) component/.exec(gen.stdout);
                     return json({ ok: g.ok, total: m ? Number(m[1]) : undefined, log: gen.stdout.slice(-800) });
                 }
+
+                if (req.url === '/api/config') return json({ src: SRC, out: OUT });
 
                 if (req.url && req.url.startsWith('/api/source/')) {
                     const name = decodeURIComponent(req.url.slice('/api/source/'.length));
@@ -55,7 +68,7 @@ function consoleApi() {
                     // root, so anything outside [A-Za-z0-9_] is rejected outright.
                     if (!/^[A-Za-z0-9_]+$/.test(name)) return json({ error: 'bad name' }, 400);
 
-                    const dir = path.join(root, 'react', 'corpus', name);
+                    const dir = path.join(root, OUT, name);
                     if (!fs.existsSync(dir)) return json({ error: 'not generated' }, 404);
                     const jsx = fs.readdirSync(dir).find((f) => f.endsWith('.jsx'));
                     if (!jsx) return json({ error: 'no source' }, 404);

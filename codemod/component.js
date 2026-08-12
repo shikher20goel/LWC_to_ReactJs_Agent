@@ -391,7 +391,8 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
     // A default <slot> emits {children}; without destructuring it the generated
     // component throws "children is not defined" at render.
     const usesChildren = /\{children\}/.test(tpl.jsx || '');
-    const props = [...a.apiProps, ...eventProps, ...(usesChildren ? ['children'] : [])];
+    const props = [...a.apiProps, ...eventProps, ...(tpl.namedSlots || []),
+        ...(usesChildren ? ['children'] : [])];
 
     /* ---- body ---- */
     const lines = [];
