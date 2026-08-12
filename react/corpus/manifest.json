@@ -1,0 +1,161 @@
+{
+  "generatedFrom": "corpus/lwc-recipes",
+  "total": 14,
+  "byStatus": {
+    "clean": 10,
+    "review": 3,
+    "escalated": 1
+  },
+  "components": [
+    {
+      "lwc": "apiProperty",
+      "component": "ApiProperty",
+      "dir": "apiProperty",
+      "status": "clean",
+      "hasStyles": true,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "chartBar",
+      "component": "ChartBar",
+      "dir": "chartBar",
+      "status": "clean",
+      "hasStyles": false,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "compositionBasics",
+      "component": "CompositionBasics",
+      "dir": "compositionBasics",
+      "status": "clean",
+      "hasStyles": true,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "contactList",
+      "component": "ContactList",
+      "dir": "contactList",
+      "status": "clean",
+      "hasStyles": false,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "contactListItem",
+      "component": "ContactListItem",
+      "dir": "contactListItem",
+      "status": "clean",
+      "hasStyles": false,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "contactTile",
+      "component": "ContactTile",
+      "dir": "contactTile",
+      "status": "clean",
+      "hasStyles": false,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "eventWithData",
+      "component": "EventWithData",
+      "dir": "eventWithData",
+      "status": "review",
+      "hasStyles": true,
+      "reviewItems": 2,
+      "todos": [
+        {
+          "kind": "template-event-casing",
+          "detail": "Custom event \"select\" — LWC lowercases event names, so the original camelCase cannot be recovered. Emitted \"onSelect\"; verify."
+        },
+        {
+          "kind": "missing-dependency",
+          "detail": "<ErrorPanel> is used but was not part of this conversion set. Convert it too, or the generated file will not resolve."
+        }
+      ]
+    },
+    {
+      "lwc": "hello",
+      "component": "Hello",
+      "dir": "hello",
+      "status": "clean",
+      "hasStyles": true,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "helloConditionalRendering",
+      "component": "HelloConditionalRendering",
+      "dir": "helloConditionalRendering",
+      "status": "clean",
+      "hasStyles": true,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "helloForEach",
+      "component": "HelloForEach",
+      "dir": "helloForEach",
+      "status": "clean",
+      "hasStyles": true,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "helloIterator",
+      "component": "HelloIterator",
+      "dir": "helloIterator",
+      "status": "review",
+      "hasStyles": true,
+      "reviewItems": 1,
+      "todos": [
+        {
+          "kind": "template-iterator",
+          "detail": "iterator:it exposes .value/.index/.first/.last — emitted a shim object; verify."
+        }
+      ]
+    },
+    {
+      "lwc": "recordEditFormStaticContact",
+      "component": "RecordEditFormStaticContact",
+      "dir": "recordEditFormStaticContact",
+      "status": "escalated",
+      "hasStyles": true,
+      "reviewItems": 1,
+      "todos": [
+        {
+          "kind": "tier-h",
+          "detail": "lightning-record-edit-form"
+        }
+      ]
+    },
+    {
+      "lwc": "viewSource",
+      "component": "ViewSource",
+      "dir": "viewSource",
+      "status": "clean",
+      "hasStyles": true,
+      "reviewItems": 0,
+      "todos": []
+    },
+    {
+      "lwc": "wireGetRecordStaticContact",
+      "component": "WireGetRecordStaticContact",
+      "dir": "wireGetRecordStaticContact",
+      "status": "review",
+      "hasStyles": true,
+      "reviewItems": 1,
+      "todos": [
+        {
+          "kind": "missing-dependency",
+          "detail": "<ErrorPanel> is used but was not part of this conversion set. Convert it too, or the generated file will not resolve."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+/* GENERATED from SLDS classes by codemod/styles.js.
+ * Do not edit — change catalog/slds.xml and regenerate.
+ */
+
+/* slds-var-m-around_medium */
+.varMAroundMedium {
+  margin: var(--lwc-varSpacingMedium, 1rem);
+}
+
+/* slds-var-p-horizontal_x-small */
+.varPHorizontalXSmall {
+  padding-left: var(--lwc-varSpacingHorizontalXSmall, 0.5rem);
+  padding-right: var(--lwc-varSpacingHorizontalXSmall, 0.5rem);
+}
+
+/* slds-show slds-is-relative */
+.showIsRelative {
+  display: block;
+  position: relative;
+}
+
+/* slds-var-m-left_medium */
+.varMLeftMedium {
+  margin-left: var(--lwc-varSpacingHorizontalMedium, 1rem);
+}

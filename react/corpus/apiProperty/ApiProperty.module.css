@@ -1,0 +1,13 @@
+/* GENERATED from SLDS classes by codemod/styles.js.
+ * Do not edit — change catalog/slds.xml and regenerate.
+ */
+
+/* slds-var-m-around_medium */
+.varMAroundMedium {
+  margin: var(--lwc-varSpacingMedium, 1rem);
+}
+
+/* slds-var-p-around_x-small */
+.varPAroundXSmall {
+  padding: var(--lwc-varSpacingXSmall, 0.5rem);
+}

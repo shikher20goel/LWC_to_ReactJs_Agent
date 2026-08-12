@@ -1,0 +1,17 @@
+{
+  "path": "A",
+  "total": 1,
+  "classes": [
+    {
+      "apexClass": "AccountController",
+      "dir": "AccountController",
+      "sharing": "with sharing",
+      "methods": 1,
+      "readMethods": 1,
+      "writeMethods": 0,
+      "notes": [
+        "types"
+      ]
+    }
+  ]
+}

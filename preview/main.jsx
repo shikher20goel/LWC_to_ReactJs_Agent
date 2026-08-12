@@ -5,19 +5,19 @@ import {
     SalesforceRuntimeProvider, createSalesforceQueryClient
 } from '../shim/runtime.js';
 
-import { ApiProperty } from '../react/corpus/ApiProperty.jsx';
-import { ChartBar } from '../react/corpus/ChartBar.jsx';
-import { CompositionBasics } from '../react/corpus/CompositionBasics.jsx';
-import { ContactList } from '../react/corpus/ContactList.jsx';
-import { ContactListItem } from '../react/corpus/ContactListItem.jsx';
-import { ContactTile } from '../react/corpus/ContactTile.jsx';
-import { EventWithData } from '../react/corpus/EventWithData.jsx';
-import { Hello } from '../react/corpus/Hello.jsx';
-import { HelloConditionalRendering } from '../react/corpus/HelloConditionalRendering.jsx';
-import { HelloForEach } from '../react/corpus/HelloForEach.jsx';
-import { HelloIterator } from '../react/corpus/HelloIterator.jsx';
-import { ViewSource } from '../react/corpus/ViewSource.jsx';
-import { WireGetRecordStaticContact } from '../react/corpus/WireGetRecordStaticContact.jsx';
+import { ApiProperty } from '../react/corpus/apiProperty/ApiProperty.jsx';
+import { ChartBar } from '../react/corpus/chartBar/ChartBar.jsx';
+import { CompositionBasics } from '../react/corpus/compositionBasics/CompositionBasics.jsx';
+import { ContactList } from '../react/corpus/contactList/ContactList.jsx';
+import { ContactListItem } from '../react/corpus/contactListItem/ContactListItem.jsx';
+import { ContactTile } from '../react/corpus/contactTile/ContactTile.jsx';
+import { EventWithData } from '../react/corpus/eventWithData/EventWithData.jsx';
+import { Hello } from '../react/corpus/hello/Hello.jsx';
+import { HelloConditionalRendering } from '../react/corpus/helloConditionalRendering/HelloConditionalRendering.jsx';
+import { HelloForEach } from '../react/corpus/helloForEach/HelloForEach.jsx';
+import { HelloIterator } from '../react/corpus/helloIterator/HelloIterator.jsx';
+import { ViewSource } from '../react/corpus/viewSource/ViewSource.jsx';
+import { WireGetRecordStaticContact } from '../react/corpus/wireGetRecordStaticContact/WireGetRecordStaticContact.jsx';
 
 const REPO = 'https://github.com/trailheadapps/lwc-recipes/tree/main/force-app/main/default/lwc';
 

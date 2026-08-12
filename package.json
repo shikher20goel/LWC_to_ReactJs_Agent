@@ -18,6 +18,7 @@
     "oracle": "jest oracle/normalise.test.js --silent=false",
     "preview": "vite",
     "setup": "npm ci --offline",
+    "springboot": "node apex/generate-springboot.js",
     "styles": "node codemod/styles-report.js corpus/lwc-recipes",
     "test": "jest",
     "test:verbose": "jest --silent=false",

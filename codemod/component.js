@@ -247,7 +247,7 @@ function rewriteDispatches(body, events) {
     return out;
 }
 
-export function generateComponent({ js, html, name, knownComponents = new Set() }) {
+export function generateComponent({ js, html, name, knownComponents = new Set(), componentDirs = new Map() }) {
     const a = analyseComponentJs(js);
     const tpl = convertTemplate(html, { name });
     const Comp = pascal(name);
@@ -315,7 +315,8 @@ export function generateComponent({ js, html, name, knownComponents = new Set() 
         if (src2.startsWith('c/')) {
             const child = pascal(src2.slice(2));
             if (knownComponents.has(child)) {
-                importLines.push(`import { ${child} } from './${child}.jsx';`);
+                const dir2 = componentDirs.get(child) || child;
+                importLines.push(`import { ${child} } from '../${dir2}/${child}.jsx';`);
             } else {
                 todos.push({
                     kind: 'missing-dependency',
@@ -367,7 +368,10 @@ export function generateComponent({ js, html, name, knownComponents = new Set() 
     // runtime, and nothing catches it until render.
     for (const child of (tpl.childComponents || []).sort()) {
         if (knownComponents.has(child)) {
-            importLines.push(`import { ${child} } from './${child}.jsx';`);
+            // Each component lives in its own folder named after the LWC
+            // bundle, so a sibling is one level up and back down.
+            const dir = componentDirs.get(child) || child;
+            importLines.push(`import { ${child} } from '../${dir}/${child}.jsx';`);
         } else {
             todos.push({
                 kind: 'missing-dependency',
