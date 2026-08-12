@@ -50,3 +50,7 @@ census/census.json
 
 # Local Claude Code settings (machine-specific permissions)
 .claude/settings.local.json
+
+# Local-only org records, if anyone pulls them. NEVER commit records.
+fixtures/local/
+knowledge/org/records*.json

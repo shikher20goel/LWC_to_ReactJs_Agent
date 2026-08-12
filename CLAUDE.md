@@ -217,6 +217,43 @@ intuition — the first draft of that probe assumed two of them backwards.
   `@api` decorator. `@api set x(v)` is the opposite — parent-written, so it
   stays a prop, but its body has nowhere to go in a function component and
   must be flagged rather than dropped.
+- **`@wire` has TWO forms.** `@wire(a,cfg) prop;` puts data IN `prop`.
+  `@wire(a,cfg) handler({data,error}){...}` RUNS the body — and that body is
+  the only thing moving the response into the fields the template reads.
+  10 of 13 wires on the first real org were the handler form; treating them as
+  the property form discarded every body, so those components rendered
+  perfectly and were permanently empty. Replay the body in a `useEffect` keyed
+  on `data`/`error`.
+- **An `@api` prop the component writes to ITSELF** is both prop and state.
+  LWC allows `this.isDisabled = true` on its own public property; React props
+  are read-only. Seed state from the prop and flag that later parent changes
+  stop propagating.
+- **Fields need not be declared.** `this.foo = []` creates one. After
+  `this.`-stripping the name is a bare identifier nothing declares.
+- **A bundle may hold plain .js modules** beside the component (label maps,
+  utilities). They are ordinary JavaScript: COPY them and pass the relative
+  import through. Dropping them turned `@track labels = labels` into a
+  self-referencing `useState`.
+- **`connectedCallback` assigns to fields more than anything else** — it is
+  where state is seeded from props. Its body must go through the same setter
+  rewrite as methods.
+
+## Preview data — synthetic, never records
+
+`npm run fixtures:build` infers each component's data SHAPE from what it reads
+(`(x ?? []).map(i => i.A__r.Name)` fully specifies `x`), then fills it using
+org METADATA (picklist values, field types) pulled by `npm run org:pull`.
+
+**Do not pull records to make previews work.** Rule 7 explains why; the
+pressure to break it is real because `sf data query` would work immediately and
+the damage is invisible until permanent. `fixtures/no-records.test.js` enforces
+it — it checks for query-result fingerprints (`attributes.url`, `totalSize`)
+and for id-shaped strings without the synthetic `xx` marker.
+
+Synthetic data is also a BUG DETECTOR: turning it on immediately surfaced
+"Assignment to constant variable" in three components, because the code path
+that assigns only runs once data arrives. An empty preview exercises almost
+nothing.
 
 ## A catalog entry is a PROMISE the runtime has to keep
 

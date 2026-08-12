@@ -4,18 +4,47 @@ import graph from '../knowledge/graph.json';
 import { SalesforceRuntimeProvider, createSalesforceQueryClient } from '../shim/runtime.js';
 import '../shim/runtime.css';
 
+import PREVIEW_DATA from '../fixtures/synthetic/preview-data.json';
+
 /**
- * A transport that returns nothing. The console previews SHAPE, not data —
- * showing invented records would make an empty component look populated and
- * hide exactly the states (empty, error) most likely to be wrong.
+ * A transport that returns nothing.
+ *
+ * The original reasoning still holds and is why sample data is a TOGGLE rather
+ * than the only mode: showing invented records makes an empty component look
+ * populated and hides exactly the states — empty, error — most likely to be
+ * wrong. But the opposite failure is just as real. With no data at all, a
+ * correctly converted list renders as nothing, which is indistinguishable from
+ * a broken one, and that is what "none of these components work" looked like.
+ *
+ * So: both, switchable, and labelled.
  */
-const previewTransport = {
+const emptyTransport = {
     callApex: () => Promise.resolve([]),
     getRecord: () => Promise.resolve(null),
     getRecords: () => Promise.resolve({ results: [] }),
     getObjectInfo: () => Promise.resolve({ apiName: 'Stub', fields: {} }),
     getPicklistValues: () => Promise.resolve({ values: [] })
 };
+
+/**
+ * Synthetic rows for one component, from fixtures/synthetic/preview-data.json.
+ *
+ * Keyed by component, not by Apex method, because off-platform the imported
+ * Apex reference is a stub object with no usable name — every method would
+ * hash to the same key. The console renders one component at a time, so the
+ * component IS the key.
+ *
+ * Apex returns a LIST, so the first array-valued root is what it serves. Roots
+ * that are objects (`classificationData`) are things a parent hands down, not
+ * things a wire fetches — they go in as props instead.
+ */
+function transportFor(lwcName) {
+    const entry = PREVIEW_DATA.components && PREVIEW_DATA.components[lwcName];
+    const collections = (entry && entry.collections) || {};
+    const rows = Object.values(collections).find(Array.isArray);
+    if (!rows) return emptyTransport;
+    return { ...emptyTransport, callApex: () => Promise.resolve(rows) };
+}
 
 /**
  * Every generated component, loaded lazily. import.meta.glob is resolved at
@@ -115,6 +144,7 @@ function Preview({ c }) {
     // Previewing only the no-props state made those look broken when they were
     // simply unmounted from their context.
     const [withRecordId, setWithRecordId] = useState(false);
+    const [withData, setWithData] = useState(true);
 
     useEffect(() => {
         setComp(null); setErr(null);
@@ -128,7 +158,24 @@ function Preview({ c }) {
     if (err) return <div className="lost"><b>Could not load:</b> {err}</div>;
     if (!Comp) return <div className="empty">Loading…</div>;
 
-    const props = withRecordId ? { recordId: SAMPLE_RECORD_ID } : {};
+    const entry = PREVIEW_DATA.components && PREVIEW_DATA.components[c.name];
+    const collections = (entry && entry.collections) || {};
+    const hasData = Boolean(Object.keys(collections).length);
+
+    // Data reaches a component one of two ways, and which one is not knowable
+    // from here: a parent FETCHES (Apex, via the transport) and a child
+    // RECEIVES (an @api prop). Previewed standalone, a child has no parent, so
+    // serving the transport alone leaves every leaf component blank — which
+    // reads as broken and is not.
+    //
+    // Passing the collections as props too covers both. A component that does
+    // not declare the prop simply ignores it: the generated signature
+    // destructures only what it declared.
+    const dataProps = withData ? { ...collections } : {};
+    const props = {
+        ...(withRecordId ? { recordId: SAMPLE_RECORD_ID } : {}),
+        ...dataProps
+    };
 
     return (
         <>
@@ -152,12 +199,36 @@ function Preview({ c }) {
                         conversion defect — the original LWC fails the same way. Run
                         <code> npm run smoke:diff</code> to confirm which side is at fault.
                     </div>
+                    <label style={{ cursor: 'pointer', display: 'block', marginTop: 6 }}>
+                        <input
+                            type="checkbox"
+                            checked={withData}
+                            onChange={(e) => setWithData(e.target.checked)}
+                        />
+                        {' '}Return <b>synthetic</b> rows from Apex
+                        {hasData ? '' : ' (none inferred for this component)'}
+                    </label>
+                    <div style={{ color: '#5e6d82', marginTop: 4 }}>
+                        Shape inferred from what this component READS; values from org
+                        metadata where available. No records — see
+                        <code> agent/pull-org-metadata.js</code>. Turn it off to check the
+                        empty state, which is the one most likely to be wrong.
+                    </div>
                 </div>
             </div>
             <div className="card">
                 <h3>Live render — {c.component}</h3>
                 <div className="body">
-                    <Guard k={`${c.name}:${withRecordId}`}><Comp {...props} /></Guard>
+                    {/* Its own provider so the transport can be per-component and
+                        per-toggle; the app-level one stays for everything else. */}
+                    <SalesforceRuntimeProvider
+                        transport={withData ? transportFor(c.name) : emptyTransport}
+                        client={createSalesforceQueryClient({})}
+                    >
+                        <Guard k={`${c.name}:${withRecordId}:${withData}`}>
+                            <Comp {...props} />
+                        </Guard>
+                    </SalesforceRuntimeProvider>
                 </div>
             </div>
         </>
@@ -358,7 +429,7 @@ function App() {
 }
 
 createRoot(document.getElementById('root')).render(
-    <SalesforceRuntimeProvider transport={previewTransport} client={createSalesforceQueryClient({})}>
+    <SalesforceRuntimeProvider transport={emptyTransport} client={createSalesforceQueryClient({})}>
         <App />
     </SalesforceRuntimeProvider>
 );

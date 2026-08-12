@@ -89,7 +89,8 @@ function parseBundle(code) {
 export function analyseComponentJs(code) {
     const ast = parseBundle(code);
     const out = {
-        apiProps: [], apiSetters: [], wires: [], getters: [], methods: [],
+        apiProps: [], apiSetters: [], selfAssignedApiProps: new Set(),
+        wires: [], getters: [], methods: [],
         fields: [], lifecycle: [], emittedEvents: [], imports: [],
         todos: []
     };
@@ -97,7 +98,7 @@ export function analyseComponentJs(code) {
     const importMap = new Map();
     for (const n of ast.program.body) {
         if (n.type !== 'ImportDeclaration') continue;
-        out.imports.push({ source: n.source.value, specifiers: n.specifiers.map((s) => s.local.name) });
+        out.imports.push({ source: n.source.value, specifiers: n.specifiers.map((s) => s.local.name), text: src(code, n) });
         for (const s of n.specifiers) importMap.set(s.local.name, n.source.value);
     }
     out.importMap = importMap;
@@ -141,13 +142,31 @@ export function analyseComponentJs(code) {
                     params.push({ key, value, reactive });
                 }
             }
+            // @wire has TWO forms and they are not interchangeable:
+            //
+            //   @wire(a, cfg) prop;              data lands IN prop
+            //   @wire(a, cfg) handler({data,error}) {...}   the body RUNS
+            //
+            // Treating the handler form as the property form silently discards
+            // the body — and the body is the only thing that moves the response
+            // into the fields the template reads. On the first real org 10 of 13
+            // wires were the handler form, so those components could never
+            // display data no matter what the backend returned. They still
+            // RENDERED, which is why nothing caught it.
+            const isHandler = m.type === 'ClassMethod';
             out.wires.push({
                 property: name,
                 adapter,
                 module: importMap.get(adapter) || '(unresolved)',
                 hook: LDS_ADAPTERS[adapter] || 'useApex',
                 isApex: (importMap.get(adapter) || '').startsWith('@salesforce/apex/'),
-                params
+                params,
+                isHandler,
+                // The param is normally an ObjectPattern `{ error, data }`, but
+                // `(result)` is legal too — keep the source text and let the
+                // emitted IIFE bind whichever shape was written.
+                handlerParam: isHandler && m.params[0] ? src(code, m.params[0]) : null,
+                handlerBody: isHandler ? deThis(src(code, m.body)) : null
             });
             continue;
         }
@@ -235,6 +254,20 @@ export function analyseComponentJs(code) {
         ...out.methods.map((m) => m.name),
         ...out.wires.map((w) => w.property)
     ]);
+    // @api PROPS THE COMPONENT WRITES TO ITSELF.
+    //
+    // `@api isDisabled = false;` plus `this.isDisabled = true` is legal LWC —
+    // the component is a plain object and a public property is still its own
+    // field. In React a prop is read-only and arrives as a const, so the same
+    // line throws "Assignment to constant variable".
+    //
+    // Only reachable once data flows: the assignment sits in the branch that
+    // runs when the wire returns rows, so the empty preview never hit it. It
+    // surfaced the moment synthetic data was switched on.
+    for (const m2 of String(src(code, cls.body)).matchAll(/\bthis\.([A-Za-z_$][\w$]*)\s*[-+*/?]?=[^=]/g)) {
+        if (out.apiProps.includes(m2[1])) out.selfAssignedApiProps.add(m2[1]);
+    }
+
     const implicit = new Set();
     // `this.x =` (or +=, ??=, ...) anywhere in the class body.
     for (const m of String(src(code, cls.body)).matchAll(/\bthis\.([A-Za-z_$][\w$]*)\s*[-+*/?]?=[^=]/g)) {
@@ -466,6 +499,21 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
             continue;
         }
 
+        // A RELATIVE import is a plain .js module sitting inside the LWC
+        // bundle — a label map, a utility, a section builder. It is ordinary
+        // JavaScript with nothing Salesforce-specific to translate, so it is
+        // copied next to the generated component (see codemod/generate.js) and
+        // the import passes through unchanged.
+        //
+        // Turning it into a TODO instead deleted the binding, and
+        // `@track labels = labels` then became a self-referencing useState:
+        // "Cannot access 'labels' before initialization". The component died
+        // on a file the codemod never needed to touch.
+        if (src2.startsWith('./') || src2.startsWith('../')) {
+            importLines.push(imp.text || `import ${imp.specifiers.join(', ')} from '${src2}';`);
+            continue;
+        }
+
         importLines.push(
             `// TODO: unmapped import — ${src2} (${imp.specifiers.join(', ')})`
         );
@@ -513,16 +561,33 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
     // A default <slot> emits {children}; without destructuring it the generated
     // component throws "children is not defined" at render.
     const usesChildren = /\{children\}/.test(tpl.jsx || '');
-    const props = [...propNames, ...eventProps, ...(tpl.namedSlots || []),
+    // A prop the component writes to itself is BOTH a prop and state: the
+    // parent supplies the initial value, the component owns it afterwards.
+    // Destructured under a private name so the state variable can keep the
+    // original one and every existing reference stays correct.
+    const selfWritten = [...a.selfAssignedApiProps];
+    const props = [...propNames.map((p) => (selfWritten.includes(p) ? `${p}: ${p}__prop` : p)),
+        ...eventProps, ...(tpl.namedSlots || []),
         ...(usesChildren ? ['children'] : [])];
 
     /* ---- body ---- */
     const lines = [];
 
     // LWC fields are MUTABLE instance state -> React state, with a setter.
-    const fieldNames = a.fields.map((f) => f.name);
+    const fieldNames = [...a.fields.map((f) => f.name), ...selfWritten];
     for (const f of a.fields) {
         lines.push(`  const [${f.name}, set${pascal(f.name)}] = React.useState(${f.init});`);
+    }
+    for (const p of selfWritten) {
+        lines.push(`  const [${p}, set${pascal(p)}] = React.useState(${p}__prop);`);
+        todos.push({
+            kind: 'self-written-api-prop',
+            detail: `@api ${p} is written by the component itself, which LWC allows and `
+                + 'React does not — a prop is read-only. Seeded from the prop and owned '
+                + 'locally afterwards, so a LATER change from the parent no longer '
+                + `propagates. If the parent is meant to drive ${p}, add a `
+                + `useEffect syncing it; if the component owns it, it should not be @api.`
+        });
     }
 
     for (const w of a.wires) {
@@ -534,6 +599,36 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
         lines.push(w.isApex
             ? `  const ${w.property} = ${w.hook}(${w.adapter}, ${cfg});`
             : `  const ${w.property} = ${w.hook}(${cfg});`);
+
+        if (!w.isHandler) continue;
+
+        // THE HANDLER FORM. Its body is what moves the response into the
+        // fields the template reads, so dropping it produces a component that
+        // renders correctly and is permanently empty.
+        //
+        // The body is replayed through an IIFE rather than inlined, so the
+        // original parameter pattern binds exactly as written — `{ error, data }`
+        // and `(result)` are both legal and destructure differently.
+        //
+        // The hook result is kept under its own name as well, because
+        // refreshApex(this.wiredContacts) refers to the wire handle.
+        let hb = rewriteDispatches(w.handlerBody, a.emittedEvents);
+        hb = rewriteStateAssignments(hb, fieldNames, todos, `@wire ${w.property}()`);
+        hb = rewriteGetterReads(hb, lazyNames);
+        const param = w.handlerParam ? `(${w.handlerParam})` : '()';
+        lines.push(`  React.useEffect(() => {`);
+        lines.push(`    (${param} => ${hb})`
+            + `({ data: ${w.property}.data, error: ${w.property}.error });`);
+        lines.push(`    // eslint-disable-next-line react-hooks/exhaustive-deps`);
+        lines.push(`  }, [${w.property}.data, ${w.property}.error]);`);
+        todos.push({
+            kind: 'wire-handler',
+            detail: `@wire ${w.property}() is the HANDLER form — its body runs on every `
+                + 'emission. Replayed in a useEffect keyed on data/error. LWC runs it '
+                + 'BEFORE render and this runs after, so there is one extra render with '
+                + 'the previous values; observably equivalent once settled, but verify '
+                + 'if the body has side effects beyond setting state.'
+        });
     }
 
     // GETTERS STAY LAZY.
@@ -587,7 +682,16 @@ export function generateComponent({ js, html, name, knownComponents = new Set(),
 
     for (const lc of a.lifecycle) {
         if (lc.name === 'connectedCallback') {
-            lines.push('  React.useEffect(() => ' + lc.body + ', []);');
+            // connectedCallback is where a component seeds its state from its
+            // props, so it assigns to fields more than any other member — and
+            // it was the one body that never went through the setter rewrite.
+            // `classificationApiName = classificationData.apiName;` then targets
+            // the const that useState destructures: "Assignment to constant
+            // variable", reachable only once data arrives.
+            let body = rewriteDispatches(lc.body, a.emittedEvents);
+            body = rewriteStateAssignments(body, fieldNames, todos, 'connectedCallback()');
+            body = rewriteGetterReads(body, lazyNames);
+            lines.push(`  React.useEffect(() => ${body}, []);`);
             todos.push({ kind: 'lifecycle', detail: 'connectedCallback -> useEffect([]) — verify effect semantics.' });
         } else {
             lines.push(`  // TODO(${lc.name}): NOT auto-converted — Tier A. Original body:`);

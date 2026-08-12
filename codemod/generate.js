@@ -66,6 +66,7 @@ const componentDirs = new Map(bundles.map((d) => [pascal(path.basename(d)), path
 
 let needsReview = 0;
 let cssFiles = 0;
+let copiedModules = 0;
 const manifest = [];
 
 for (const dir of bundles) {
@@ -92,6 +93,25 @@ for (const dir of bundles) {
     }
     fs.writeFileSync(path.join(compDir, 'index.js'),
         `export { ${r.componentName} } from './${r.componentName}.jsx';\n`);
+
+    // SIBLING MODULES INSIDE THE BUNDLE.
+    //
+    // An LWC bundle may contain plain .js modules beside the component —
+    // label maps, utility functions, section builders. They are imported
+    // relatively (`import labels from './xLabels'`) and are ordinary
+    // JavaScript, so they need no conversion: they need COPYING.
+    //
+    // Dropping them turned `@track labels = labels` into
+    // `const [labels] = useState(labels)`, a self-reference that throws
+    // "Cannot access 'labels' before initialization" — the component died on
+    // a helper the codemod never had to translate. One bundle here carried
+    // seven of them.
+    const siblings = fs.readdirSync(dir)
+        .filter((f) => f.endsWith('.js') && f !== `${name}.js`);
+    for (const s of siblings) {
+        fs.copyFileSync(path.join(dir, s), path.join(compDir, s));
+    }
+    if (siblings.length) copiedModules += siblings.length;
 
     const blocking = r.todos.filter(
         (t) => t.kind === 'tier-h' || t.kind === 'platform-escalate'
@@ -143,7 +163,8 @@ fs.writeFileSync(path.join(outDir, 'manifest.json'), `${JSON.stringify({
     components: manifest.sort((a, b) => a.lwc.localeCompare(b.lwc))
 }, null, 2)}\n`);
 
-console.log(`Generated ${manifest.length} component(s), ${cssFiles} CSS module(s) -> ${outDir}\n`);
+console.log(`Generated ${manifest.length} component(s), ${cssFiles} CSS module(s), `
+    + `${copiedModules} bundle helper(s) copied -> ${outDir}\n`);
 console.log(`  clean     ${byStatus.clean || 0}`);
 console.log(`  review    ${byStatus.review || 0}`);
 console.log(`  escalated ${byStatus.escalated || 0}   (correct refusals — Tier-H / host-only)`);

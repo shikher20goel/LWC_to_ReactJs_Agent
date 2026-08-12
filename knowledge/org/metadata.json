@@ -1,0 +1,376 @@
+{
+  "pulledFor": "force-app",
+  "objects": {
+    "SmartCalendar_Invitation__c": {
+      "name": "SmartCalendar_Invitation__c",
+      "label": "Invitation",
+      "custom": true,
+      "fields": [
+        {
+          "name": "Id",
+          "label": "Record ID",
+          "type": "id",
+          "length": 18,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "OwnerId",
+          "label": "Owner ID",
+          "type": "reference",
+          "length": 18,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [
+            "Group",
+            "User"
+          ],
+          "relationshipName": "Owner",
+          "picklistValues": []
+        },
+        {
+          "name": "IsDeleted",
+          "label": "Deleted",
+          "type": "boolean",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "Name",
+          "label": "Invitation Name",
+          "type": "string",
+          "length": 80,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "CreatedDate",
+          "label": "Created Date",
+          "type": "datetime",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "CreatedById",
+          "label": "Created By ID",
+          "type": "reference",
+          "length": 18,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [
+            "User"
+          ],
+          "relationshipName": "CreatedBy",
+          "picklistValues": []
+        },
+        {
+          "name": "LastModifiedDate",
+          "label": "Last Modified Date",
+          "type": "datetime",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "LastModifiedById",
+          "label": "Last Modified By ID",
+          "type": "reference",
+          "length": 18,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [
+            "User"
+          ],
+          "relationshipName": "LastModifiedBy",
+          "picklistValues": []
+        },
+        {
+          "name": "SystemModstamp",
+          "label": "System Modstamp",
+          "type": "datetime",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "LastActivityDate",
+          "label": "Last Activity Date",
+          "type": "date",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "LastViewedDate",
+          "label": "Last Viewed Date",
+          "type": "datetime",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "LastReferencedDate",
+          "label": "Last Referenced Date",
+          "type": "datetime",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "ConnectionReceivedId",
+          "label": "Received Connection ID",
+          "type": "reference",
+          "length": 18,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [
+            "PartnerNetworkConnection"
+          ],
+          "relationshipName": "ConnectionReceived",
+          "picklistValues": []
+        },
+        {
+          "name": "ConnectionSentId",
+          "label": "Sent Connection ID",
+          "type": "reference",
+          "length": 18,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [
+            "PartnerNetworkConnection"
+          ],
+          "relationshipName": "ConnectionSent",
+          "picklistValues": []
+        },
+        {
+          "name": "Subject__c",
+          "label": "Subject",
+          "type": "string",
+          "length": 255,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "Description__c",
+          "label": "Description",
+          "type": "textarea",
+          "length": 32768,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "MeetingDuration__c",
+          "label": "Meeting Duration",
+          "type": "string",
+          "length": 255,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "AvailabilityOptions__c",
+          "label": "Availability Options",
+          "type": "picklist",
+          "length": 255,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": [
+            {
+              "value": "Open",
+              "label": "Open",
+              "defaultValue": false
+            },
+            {
+              "value": "Rolling Window",
+              "label": "Rolling Window",
+              "defaultValue": false
+            },
+            {
+              "value": "Date Range",
+              "label": "Date Range",
+              "defaultValue": false
+            }
+          ]
+        },
+        {
+          "name": "RollingWindow__c",
+          "label": "Rolling Window",
+          "type": "picklist",
+          "length": 255,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": [
+            {
+              "value": "1 Week",
+              "label": "1 Week",
+              "defaultValue": false
+            },
+            {
+              "value": "2 Weeks",
+              "label": "2 Weeks",
+              "defaultValue": false
+            },
+            {
+              "value": "1 Month",
+              "label": "1 Month",
+              "defaultValue": false
+            },
+            {
+              "value": "2 Months",
+              "label": "2 Months",
+              "defaultValue": false
+            }
+          ]
+        },
+        {
+          "name": "StartDate__c",
+          "label": "Start Date",
+          "type": "datetime",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "EndDate__c",
+          "label": "End Date",
+          "type": "datetime",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "LocationOptions__c",
+          "label": "Location Options",
+          "type": "picklist",
+          "length": 255,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": [
+            {
+              "value": "Phone",
+              "label": "Phone",
+              "defaultValue": false
+            },
+            {
+              "value": "In Person",
+              "label": "In Person",
+              "defaultValue": false
+            }
+          ]
+        },
+        {
+          "name": "PhoneDetails__c",
+          "label": "Phone Details",
+          "type": "string",
+          "length": 255,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "InPersonDetails__c",
+          "label": "In Person Details",
+          "type": "string",
+          "length": 255,
+          "precision": 0,
+          "scale": 0,
+          "nillable": true,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        },
+        {
+          "name": "IsSendInvitation__c",
+          "label": "Is Send Invitation",
+          "type": "boolean",
+          "length": 0,
+          "precision": 0,
+          "scale": 0,
+          "nillable": false,
+          "referenceTo": [],
+          "relationshipName": null,
+          "picklistValues": []
+        }
+      ]
+    }
+  },
+  "labels": {},
+  "notDescribable": [
+    "Property__c"
+  ],
+  "note": "METADATA ONLY. No records. See the header of agent/pull-org-metadata.js."
+}
