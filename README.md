@@ -29,12 +29,49 @@ LWC runs off-platform in Node. So we render the **original** LWC and the
 That converts "we hope the LLM understood the component" into "we can prove
 it did, on observed paths" — without needing any pre-existing tests.
 
-## Quick start
+## Running it
 
-    npm install
-    npx jest --silent=false
+Requires Node 22+ (developed on 24).
 
-Expected: printed canonical boundary trees and a passing oracle suite.
+```bash
+npm install
+npm test
+```
+
+That is **the gate**: 91 tests, ~3s. Green means the oracle, codemod, shim,
+census and fixture validation all work.
+
+### The four commands you'll actually use
+
+| Command | What it does |
+|---|---|
+| `npx jest generated.react --silent=false` | **See the oracle prove a conversion.** Renders the original LWC and the generated React against identical fixtures and prints both boundary trees. They should be identical. |
+| `npm run generate` | **Convert LWC → React.** Writes `react/generated/*.jsx` and reports which components are clean vs. need review. |
+| `npm run census` | **The project gate.** Tiers every component and evaluates the kill criteria. |
+| `npm run fixtures:check` | Validate fixture shape + provenance before committing any. |
+
+Exit codes are deliberate so both are CI-usable:
+
+- `npm run census` — `0` gates clear · `1` **Tier-H > 35%, STOP** · `2` parse
+  failures, so the percentages are understated and the verdict is not trustworthy
+- `npm run generate` — `1` means at least one component has review items.
+  That is information, not a crash.
+
+### Running it against your own org
+
+```bash
+sf project retrieve start --metadata LightningComponentBundle --target-org <your-alias>
+```
+
+Drop the result into `force-app/main/default/`, then run `npm run census` and
+`npm run generate`. Until then every number here describes three components
+written for this repo, which the research is explicit are
+"unrepresentatively clean".
+
+> ⚠️ Retrieve from a **Developer, Dev Pro, or scratch org** — those are
+> metadata-only. Full and Partial Copy sandboxes contain real customer data,
+> and per `CLAUDE.md` rule 7 it must never enter this repo. Git history makes
+> that effectively irreversible.
 
 ## Components under test
 
