@@ -7,17 +7,19 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "jest",
-    "test:verbose": "jest --silent=false",
-    "oracle": "jest oracle/normalise.test.js --silent=false",
+    "apex:facade": "node apex/generate-facade.js force-app/main/default/classes apex/generated",
     "census": "node census/run.js",
     "codemod": "jest codemod --silent=false",
-    "generate": "node codemod/generate.js",
-    "fixtures:check": "jest fixtures --silent=false",
-    "preview": "vite",
     "corpus": "node census/run.js corpus/lwc-recipes && node codemod/generate.js corpus/lwc-recipes react/corpus",
+    "fixtures:check": "jest fixtures --silent=false",
+    "generate": "node codemod/generate.js",
+    "oracle": "jest oracle/normalise.test.js --silent=false",
+    "preview": "vite",
+    "setup": "npm ci --offline",
     "styles": "node codemod/styles-report.js corpus/lwc-recipes",
-    "apex:facade": "node apex/generate-facade.js force-app/main/default/classes apex/generated"
+    "test": "jest",
+    "test:verbose": "jest --silent=false",
+    "vendor:refresh": "npm ci --cache vendor/npm-cache --no-audit --no-fund"
   },
   "devDependencies": {
     "@apexdevtools/apex-parser": "file:vendor/apexdevtools-apex-parser-5.1.0.tgz",

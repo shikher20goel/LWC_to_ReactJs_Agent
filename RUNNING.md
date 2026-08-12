@@ -6,8 +6,36 @@ was written. If one behaves differently for you, that is a real bug — say so.
 **Requires Node 22+** (developed on 24). First time only:
 
 ```bash
-npm install
+npm run setup
 ```
+
+### This installs OFFLINE — no npm registry access needed
+
+The company network cannot reach the npm registry, so **every dependency ships
+in `vendor/npm-cache`** (35 MB, 532 packages) and `.npmrc` makes `offline=true`
+the default. A plain `npm ci` works with the network cable unplugged; verified
+by wiping `node_modules` and reinstalling with `--offline`, which *fails* if
+anything tries to reach out.
+
+`--offline` is used rather than `--prefer-offline` deliberately: prefer-offline
+silently falls back to the network, so it works on a laptop with internet and
+then fails in CI. Better to fail here, where the message is actionable.
+
+**The one real limitation — platform-specific binaries.** Four packages ship
+native `.node` files, and the cache holds the **win32-x64** builds:
+`@rolldown/binding`, `@rollup/rollup`, `lightningcss`. All four come from
+**Vite, which is only used by `npm run preview`**.
+
+So:
+
+| | Windows | Linux / macOS |
+|---|---|---|
+| Core pipeline — tests, census, codemod, oracle, styles, apex | ✅ works offline | ✅ works offline (pure JS) |
+| `npm run preview` | ✅ | ❌ needs its native deps for that platform |
+
+To add another platform, run `npm run vendor:refresh` **on that platform** with
+network access once, and commit the additional cache entries. The cache is
+additive — it does not need re-creating.
 
 ---
 
