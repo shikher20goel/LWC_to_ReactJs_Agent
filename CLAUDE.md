@@ -47,6 +47,20 @@ The oracle suite must pass. This is the gate.
      clean undo.
    If a fixture might contain real data, STOP and flag for human review.
    `npm run fixtures:check` is a heuristic backstop, not permission.
+8. **Target is React on AWS ECS — fully off-platform.** Three consequences
+   that are easy to get wrong because they all "work" in development:
+   - **No Salesforce token may ever reach the browser.** Auth is an HttpOnly
+     cookie to a BFF that holds the credentials. Salesforce CORS does not
+     cover the OAuth endpoints, so a browser cannot legitimately mint a token
+     anyway — see `shim/transport-bff.js`.
+   - **No client-side SOQL.** Endpoints are intent-shaped. A client that can
+     post arbitrary SOQL reads whatever the BFF credential can see, which
+     defeats FLS and sharing however careful the UI is.
+   - **API quota is ORG-WIDE.** Not per user, not per IP, and NOT increased by
+     running more ECS tasks. Exhausting it returns 403 REQUEST_LIMIT_EXCEEDED
+     for *every* integration on the org. Treat quota pressure as a first-class
+     signal and never retry a quota failure — that burns more of what is
+     already gone.
 
 ## Oracle invariants — discovered by the S-1 spike, do not regress
 
