@@ -107,7 +107,10 @@ describe('CODEMOD — template to JSX', () => {
         // CLAUDE.md rule 3. Uses a tag deliberately ABSENT from
         // catalog/base-components.xml — if someone catalogues combobox later,
         // this test should be repointed, not deleted.
-        const r = conv(tpl('<lightning-combobox options={o}></lightning-combobox>'));
+        // Repointed once already: combobox was catalogued after this test was
+        // written, and the test correctly failed rather than silently passing.
+        // If carousel gets catalogued too, repoint again — do not delete.
+        const r = conv(tpl('<lightning-carousel items={o}></lightning-carousel>'));
         expect(r.warnings.some((w) => w.kind === 'uncatalogued-base')).toBe(true);
     });
 
