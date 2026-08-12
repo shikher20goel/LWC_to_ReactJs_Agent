@@ -342,6 +342,50 @@ export function runCensus(sourceRoot) {
             .filter((b) => b.base_components.some((t) => TIER_H_TAGS.has(t)))
             .map((b) => ({ name: b.name, tags: b.base_components.filter((t) => TIER_H_TAGS.has(t)) })),
 
+        /**
+         * OFF-PLATFORM READINESS.
+         *
+         * Added when the target became a React app on AWS ECS rather than
+         * anything hosted by Salesforce. On-platform an LWC gets its session,
+         * its Apex access and its FLS enforcement from the host for free. A
+         * container in a VPC gets none of that, so three things that were
+         * invisible become scoped work:
+         *
+         *  1. apex_methods_to_expose — @AuraEnabled is reachable from Aura/LWC,
+         *     NOT from an external client. Each method here is a backend task
+         *     (Apex REST / GraphQL / BFF), not a UI conversion.
+         *  2. host_only_apis — console tabs, quick actions, navigation. These
+         *     have no off-platform equivalent at all; they are product
+         *     decisions, not migrations.
+         *  3. components_needing_backend — the UI cannot ship until its data
+         *     path exists, so this is the real critical path.
+         */
+        offplatform_readiness: (() => {
+            const apexMethods = new Set();
+            const apexClasses = new Set();
+            for (const b of bundles) {
+                for (const m of b.apex_imports) {
+                    apexMethods.add(m);
+                    apexClasses.add(String(m).split('.')[0]);
+                }
+            }
+            const HOST_ONLY = ['platformWorkspaceApi', 'navigation', 'actions', 'refresh'];
+            const hostOnly = bundles.filter((b) =>
+                b.platform_modules.some((p) => HOST_ONLY.includes(p))
+                || b.wires.some((w) => HOST_ONLY.some((h) => w.module.includes(h))));
+            const needBackend = bundles.filter((b) => b.apex_imports.length);
+            return {
+                apex_classes_to_expose: [...apexClasses].sort(),
+                apex_methods_to_expose: [...apexMethods].sort(),
+                components_needing_backend: needBackend.map((b) => b.name),
+                components_needing_backend_pct: bundles.length
+                    ? needBackend.length / bundles.length : 0,
+                host_only_api_components: hostOnly.map((b) => b.name),
+                note: '@AuraEnabled Apex is not callable from an external app. Every '
+                    + 'method listed needs re-exposing before the converted UI can ship.'
+            };
+        })(),
+
         tier_distribution: tiers,
         tier_percentages: {
             M: tiers.M / total, A: tiers.A / total, H: tiers.H / total
@@ -387,7 +431,15 @@ export function formatCensus(c) {
         ...c.base_components_used.slice(0, 15).map((b) => `  ${String(b.count).padStart(4)}  ${b.tag}`),
         '',
         'Wire adapters:',
-        ...c.wire_adapters_used.map((w) => `  ${String(w.count).padStart(4)}  ${w.adapter}  <- ${w.module}`)
+        ...c.wire_adapters_used.map((w) => `  ${String(w.count).padStart(4)}  ${w.adapter}  <- ${w.module}`),
+        '',
+        'OFF-PLATFORM READINESS (target: React outside Salesforce)',
+        `  Apex methods needing re-exposure : ${c.offplatform_readiness.apex_methods_to_expose.length}`
+            + ` (across ${c.offplatform_readiness.apex_classes_to_expose.length} classes)`,
+        `  Components blocked on backend    : ${c.offplatform_readiness.components_needing_backend.length}`
+            + `  ${pct(c.offplatform_readiness.components_needing_backend_pct)}`,
+        `  Components using host-only APIs  : ${c.offplatform_readiness.host_only_api_components.length}`
+            + '  (console tabs / quick actions — no off-platform equivalent)'
     ];
     return lines.join('\n');
 }
