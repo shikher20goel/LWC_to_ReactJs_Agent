@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog schema="1.0" purpose="drives codemod, LLM mapping, AND oracle normaliser">
+  <!-- props: MUST be enumerated. The oracle reads these by name off the
+       element. Base-component stubs expose no discoverable public API. -->
+  <component tag="lightning-card" canonical="Card" tier="M">
+    <props>title, iconName, variant</props>
+    <targets><target lib="tbd" name="Card" fidelity="0.9"/></targets>
+    <slots>default, actions, footer, title</slots>
+  </component>
+  <component tag="lightning-button" canonical="Button" tier="M">
+    <props>label, variant, iconName, disabled, type</props>
+    <events><event from="onclick" to="onClick"/></events>
+  </component>
+  <component tag="lightning-formatted-number" canonical="FormattedNumber" tier="M">
+    <props>value, formatStyle, currencyCode, minimumFractionDigits</props>
+    <note>Stub renders NO text off-platform. Compare props, never rendered text.</note>
+  </component>
+  <component tag="lightning-formatted-text" canonical="FormattedText" tier="M">
+    <props>value</props>
+  </component>
+  <!-- Tier H placeholder — do not auto-convert -->
+  <component tag="lightning-record-edit-form" canonical="RecordEditForm" tier="H">
+    <reason>Metadata-driven layout, FLS enforcement, validation rules, DML.
+            Replacing it is a product build, not a translation.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+</catalog>

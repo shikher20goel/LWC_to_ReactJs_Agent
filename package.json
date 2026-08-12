@@ -1,0 +1,16 @@
+{
+  "name": "lwc-to-react-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "jest",
+    "test:verbose": "jest --silent=false",
+    "oracle": "jest oracle/normalise.test.js --silent=false"
+  },
+  "devDependencies": {
+    "@salesforce/sfdx-lwc-jest": "^7.9.0",
+    "dom-accessibility-api": "^0.7.1"
+  }
+}

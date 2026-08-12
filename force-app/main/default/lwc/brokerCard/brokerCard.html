@@ -1,0 +1,8 @@
+<template>
+    <div class="broker-card slds-box">
+        <p class="broker-name">{brokerName}</p>
+        <lightning-button label="Contact" variant="brand"
+            icon-name="utility:email" onclick={handleContact}></lightning-button>
+        <slot name="footer"></slot>
+    </div>
+</template>

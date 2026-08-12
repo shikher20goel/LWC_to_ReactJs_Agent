@@ -1,0 +1,13 @@
+node_modules/
+coverage/
+.DS_Store
+*.log
+# never commit org credentials or retrieved source with data
+.sfdx/
+.sf/
+*.key
+*.pem
+authFiles/
+census/raw/
+fixtures/recorded/
+trace/
