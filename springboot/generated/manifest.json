@@ -6,11 +6,16 @@
       "apexClass": "AccountController",
       "dir": "AccountController",
       "sharing": "with sharing",
+      "apiVersion": "62.0",
       "methods": 1,
       "readMethods": 1,
       "writeMethods": 0,
       "notes": [
-        "types"
+        "security",
+        "injection",
+        "limits",
+        "types",
+        "state"
       ]
     }
   ]

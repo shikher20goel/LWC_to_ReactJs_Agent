@@ -74,10 +74,42 @@ function javaType(apexType, unknown) {
 
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export function generateSpringClass(apexClass) {
+export function generateSpringClass(apexClass, { apiVersion = null } = {}) {
     const cls = apexClass.className;
     const unknownTypes = new Set();
     const notes = [];
+
+    // API VERSION DECIDES THE SECURITY SEMANTICS (research/17).
+    // From v67.0 (Summer '26): database operations default to USER MODE, an
+    // unannotated class defaults to `with sharing`, and WITH SECURITY_ENFORCED
+    // is removed. Below v67.0 the opposite holds — system mode, no implied
+    // sharing. A generator that ignores this INVERTS the security model of
+    // every legacy class it touches, and the output looks identical either way.
+    const v = apiVersion ? parseFloat(apiVersion) : null;
+    if (v === null) {
+        notes.push({
+            kind: 'security',
+            detail: 'No apiVersion found (.cls-meta.xml missing). The security '
+                + 'semantics of this class are UNKNOWN: v67.0+ defaults to user mode '
+                + 'and implied `with sharing`; below that, system mode and no implied '
+                + 'sharing. Determine the version before trusting any of this.'
+        });
+    } else if (v < 67) {
+        notes.push({
+            kind: 'security',
+            detail: `apiVersion ${apiVersion} is BELOW v67.0, so this class runs in `
+                + 'SYSTEM MODE on-platform — FLS and object permissions are not '
+                + 'enforced by default. Do not assume the Java equivalent inherits '
+                + 'user-mode safety just because the platform default changed.'
+        });
+    } else {
+        notes.push({
+            kind: 'security',
+            detail: `apiVersion ${apiVersion} is v67.0+, so database operations run in `
+                + 'USER MODE on-platform. The Java equivalent gets NO such default — '
+                + 'user-mode enforcement must be written explicitly.'
+        });
+    }
 
     if (apexClass.sharing === 'without sharing') {
         notes.push({
@@ -194,12 +226,36 @@ ${endpoints}
 }
 `;
 
+    notes.push({
+        kind: 'injection',
+        detail: 'Apex bind variables (:var) structurally prevent SOQL injection. They do '
+            + 'NOT survive the move to API query strings, which creates a bug class Apex '
+            + 'did not have. Any query built in Java must parameterise or escape '
+            + 'explicitly — this is new attack surface, not a port of an old one.'
+    });
+    notes.push({
+        kind: 'limits',
+        detail: 'Governor limits invert rather than vanish. The 6 MB heap and 50k-row caps '
+            + 'were free capacity planning that failed as a catchable LimitException. '
+            + 'Without them an oversized result becomes an ECS task OOM-kill that takes '
+            + 'concurrent requests down with it.'
+    });
     if (unknownTypes.size) {
         notes.push({
             kind: 'types',
             detail: `Modelled as Map<String,Object> rather than invented DTOs: `
                 + `${[...unknownTypes].join(', ')}. Guessing a DTO shape from a type name `
                 + 'produces plausible-wrong code that is expensive to unpick.'
+        });
+    }
+    if (methods.length) {
+        notes.push({
+            kind: 'state',
+            detail: '`static` means OPPOSITE things in the two languages. In Apex it is '
+                + 'per-TRANSACTION and discarded afterwards; in Spring it is per-JVM and '
+                + 'shared across every concurrent request. Any Apex static state ported '
+                + 'literally becomes a cross-request data leak that only appears under '
+                + 'load. Keep the Spring service stateless.'
         });
     }
     if (apexClass.methods.some((m) => !m.isStatic)) {
@@ -228,7 +284,17 @@ if (process.argv[1] && process.argv[1].endsWith('generate-springboot.js')) {
         const analysed = analyseApexClass(fs.readFileSync(path.join(srcDir, f), 'utf8'), f);
         if (!analysed.methods.length) continue;
 
-        const g = generateSpringClass(analysed);
+        // The .cls-meta.xml apiVersion decides the class's security semantics
+        // (user vs system mode, implied sharing). Reading it is not optional.
+        const metaPath = path.join(srcDir, `${f}-meta.xml`);
+        let apiVersion = null;
+        if (fs.existsSync(metaPath)) {
+            const m = /<apiVersion>\s*([\d.]+)\s*<\/apiVersion>/
+                .exec(fs.readFileSync(metaPath, 'utf8'));
+            if (m) apiVersion = m[1];
+        }
+
+        const g = generateSpringClass(analysed, { apiVersion });
         const dir = path.join(outDir, g.cls);      // folder = Apex class name
         fs.mkdirSync(dir, { recursive: true });
 
@@ -238,7 +304,7 @@ if (process.argv[1] && process.argv[1].endsWith('generate-springboot.js')) {
             `# ${g.cls} → ${g.cls}Service`,
             '',
             `**Path:** A — Salesforce remains the system of record (decision D-1)`,
-            `**Source:** \`${f}\`  ·  **Sharing:** \`${analysed.sharing}\``,
+            `**Source:** \`${f}\`  ·  **Sharing:** \`${analysed.sharing}\`  ·  **API:** \`${apiVersion || 'UNKNOWN'}\``,
             `**Methods:** ${g.methods.length} (${g.methods.filter((m) => m.cacheable).length} read, `
                 + `${g.methods.filter((m) => !m.cacheable).length} write)`,
             '',
@@ -260,6 +326,7 @@ if (process.argv[1] && process.argv[1].endsWith('generate-springboot.js')) {
             apexClass: g.cls,
             dir: g.cls,
             sharing: analysed.sharing,
+            apiVersion,
             methods: g.methods.length,
             readMethods: g.methods.filter((m) => m.cacheable).length,
             writeMethods: g.methods.filter((m) => !m.cacheable).length,

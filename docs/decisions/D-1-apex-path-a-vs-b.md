@@ -11,6 +11,23 @@ projects wearing the same sentence.
 
 ---
 
+## Update after research/17: there are THREE paths
+
+### Path 0 — do not convert  ← the right answer for MOST classes
+
+Leave the Apex where it is and re-expose it (`@InvocableMethod` →
+`/actions/custom/apex/{Name}`, an additive annotation). research/17 finds this
+beats both A and B for the majority of classes, and it is what
+`apex/generate-facade.js` already does.
+
+The asymmetry that decides it: under Path A **the invisible half still runs** —
+a write through the Java service hits the full Salesforce save pipeline, so
+triggers, flows, validation rules and rollups all fire. Under Path B all 18
+non-persistence steps stop, silently. Everything else follows from that.
+
+So the triage is: **Path 0 by default, Path A where the logic genuinely needs
+to live in Java, Path B effectively never.**
+
 ## The two paths
 
 ### Path A — Spring Boot calls Salesforce  ← recommended
@@ -88,6 +105,39 @@ assignment rules, formula fields. Not as documentation, as a **gate**. The
 census already inventories Apex reachable from LWC; it does not yet inventory
 any of these, and converting without them is a leap of faith rather than a
 migration.
+
+## What research/17 added to Path A's cost
+
+Path A is right, but it is not free, and these are new problems rather than
+ported ones:
+
+- **SOQL injection is a NEW bug class.** Apex bind variables (`:var`)
+  structurally prevent it. They do not survive the move to API query strings.
+- **No transactionality across calls, and no read-your-writes.** Two API calls
+  are two transactions.
+- **Governor limits invert.** The 6 MB heap and 50k-row caps were free capacity
+  planning that failed as a catchable `LimitException`. Without them an
+  oversized result becomes an ECS task OOM-kill that takes concurrent requests
+  with it.
+- **`static` means the opposite thing.** Per-transaction in Apex; per-JVM and
+  shared across concurrent requests in Spring. Ported literally, it is a
+  cross-request data leak that only appears under load.
+- **API version decides security semantics.** v67.0+ defaults database ops to
+  user mode and unannotated classes to `with sharing`; below that, neither
+  holds. The generator now reads `.cls-meta.xml` — without it, a codemod
+  inverts the security model of every legacy class and the output looks
+  identical either way.
+
+## Why Path B is under-determined, not merely expensive
+
+research/17 found a hard ceiling: **managed-package triggers and flows run in
+the save pipeline and their source is unreadable.** So the invisible half
+cannot be fully inventoried even in principle — not a budget problem, a
+knowability one.
+
+And the failure mode is stated plainly enough to quote: a missing visibility
+`WHERE` clause **throws nothing, fails no test, and passes review because it
+looks like the Apex.**
 
 ## Open
 
