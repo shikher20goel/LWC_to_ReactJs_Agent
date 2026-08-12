@@ -4,6 +4,7 @@
  * No review items flagged.
  */
 import React from 'react';
+import styles from './HelloConditionalRendering.module.css';
 import { Boundary, Card, Input } from '@migration/salesforce-runtime/components';
 import { ViewSource } from './ViewSource.jsx';
 
@@ -16,9 +17,9 @@ export function HelloConditionalRendering({  }) {
   return (
     <Boundary name="HelloConditionalRendering" props={{}}>
       <Card title="HelloConditionalRendering" iconName="custom:custom14">
-        <div className="slds-var-m-around_medium">
+        <div className={styles.varMAroundMedium}>
           <Input type="checkbox" label="Show details" onChange={handleChange} />
-          <div className="slds-var-m-vertical_medium">
+          <div className={styles.varMVerticalMedium}>
             {areDetailsVisible ? (
               <>
                 These are the details!

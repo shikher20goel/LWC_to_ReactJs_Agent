@@ -272,6 +272,9 @@ export function generateComponent({ js, html, name, knownComponents = new Set() 
     // must be independent of where it happens to be written, and this is the
     // name the runtime ships as.
     const importLines = ["import React from 'react';"];
+    // CSS Module: generated components must not depend on Salesforce's
+    // stylesheet being present, or nothing was actually migrated.
+    if (tpl.usesStyles) importLines.push(`import styles from './${Comp}.module.css';`);
     if (shimHooks.length) {
         importLines.push(`import { ${shimHooks.sort().join(', ')} } from '${RUNTIME_PKG}';`);
     }
@@ -429,5 +432,9 @@ ${jsxIndented}
 }
 `;
 
-    return { code, todos, componentName: Comp, analysis: a, template: tpl };
+    return {
+        code, todos, componentName: Comp, analysis: a, template: tpl,
+        css: tpl.css || '', usesStyles: Boolean(tpl.usesStyles),
+        styleReports: tpl.styleReports || []
+    };
 }

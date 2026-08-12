@@ -4,6 +4,7 @@
  * No review items flagged.
  */
 import React from 'react';
+import styles from './BrokerCard.module.css';
 import { Boundary, Button } from '@migration/salesforce-runtime/components';
 
 export function BrokerCard({ brokerName, brokerId, onContact }) {
@@ -13,7 +14,7 @@ export function BrokerCard({ brokerName, brokerId, onContact }) {
 
   return (
     <Boundary name="BrokerCard" props={{ brokerName, brokerId }}>
-      <div className="broker-card slds-box">
+      <div className={`${styles.box} broker-card`}>
         <p className="broker-name">
           {brokerName}
         </p>

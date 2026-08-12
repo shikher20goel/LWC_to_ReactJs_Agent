@@ -4,6 +4,7 @@
  * 1 item(s) need review; see the TODO block below.
  */
 import React from 'react';
+import styles from './WireGetRecordStaticContact.module.css';
 import { useRecord } from '@migration/salesforce-runtime';
 import { Boundary, Card, FormattedEmail, FormattedPhone } from '@migration/salesforce-runtime/components';
 import { getFieldValue } from '@migration/salesforce-runtime';
@@ -31,7 +32,7 @@ export function WireGetRecordStaticContact({ recordId }) {
       <Card title="WireGetRecordStaticContact" iconName="standard:contact">
         {contact.data ? (
           <>
-            <div className="slds-var-m-around_medium">
+            <div className={styles.varMAroundMedium}>
               <p>
                 {name}
               </p>

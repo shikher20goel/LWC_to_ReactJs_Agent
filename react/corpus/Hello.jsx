@@ -4,6 +4,7 @@
  * No review items flagged.
  */
 import React from 'react';
+import styles from './Hello.module.css';
 import { Boundary, Card } from '@migration/salesforce-runtime/components';
 import { ViewSource } from './ViewSource.jsx';
 
@@ -13,7 +14,7 @@ export function Hello({  }) {
   return (
     <Boundary name="Hello" props={{}}>
       <Card title="Hello" iconName="custom:custom14">
-        <div className="slds-var-m-around_medium">
+        <div className={styles.varMAroundMedium}>
           Hello,
           {greeting}
           !

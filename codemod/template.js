@@ -31,6 +31,7 @@
 
 import { parse } from '@lwc/template-compiler';
 import { loadCatalog } from '../catalog/load.js';
+import { createStyleSheet } from './styles.js';
 
 /** Diagnostics that mean "parsed, but do not migrate this". research/06 R4.5 */
 const BLOCKING_DIAGNOSTICS = new Set([1044, 1071, 1165]);
@@ -106,6 +107,22 @@ function collectProps(node, ctx, isComponent) {
 
     for (const a of node.attributes || []) {
         if (a.name === 'slot') continue;                 // handled by grouping
+
+        // SLDS classes are CONVERTED, not passed through. Emitting the raw
+        // string would make the output depend on Salesforce's stylesheet
+        // being loaded — i.e. not actually migrated.
+        if (a.name === 'class' && a.value && a.value.type === 'Literal') {
+            const { moduleClass, passthrough } = ctx.style(String(a.value.value));
+            if (moduleClass && passthrough.length) {
+                parts.push(`className={\`\${styles.${moduleClass}} ${passthrough.join(' ')}\`}`);
+            } else if (moduleClass) {
+                parts.push(`className={styles.${moduleClass}}`);
+            } else if (passthrough.length) {
+                parts.push(`className=${JSON.stringify(passthrough.join(' '))}`);
+            }
+            continue;
+        }
+
         const name = ATTR_RENAME[a.name] || a.name;
         // React's style prop needs an OBJECT and throws on a string. LWC allows
         // both, including a computed string, so convert at runtime.
@@ -294,7 +311,7 @@ function emitElse(node, depth, ctx) {
  * Public API
  * ------------------------------------------------------------------ */
 
-export function convertTemplate(source, { name = 'component' } = {}) {
+export function convertTemplate(source, { name = 'component', stylePreset } = {}) {
     const { root, warnings = [] } = parse(source, { name, namespace: 'c' });
 
     // Trap 5: parse() never throws.
@@ -312,20 +329,25 @@ export function convertTemplate(source, { name = 'component' } = {}) {
         .filter((w) => BLOCKING_DIAGNOSTICS.has(w.code))
         .map((w) => ({ code: w.code, message: w.message }));
 
+    const sheet = createStyleSheet({ preset: stylePreset });
     const ctx = {
+        _sheetRef: sheet,
         _warnings: [],
         _escalations: [],
         _children: new Set(),
         _needsCssToStyle: false,
+        _sheet: null,
         _scopes: [],
         warn(kind, message) { this._warnings.push({ kind, message }); },
         escalate(tag) { this._escalations.push(tag); },
         child(name) { this._children.add(name); },
         needsCssToStyle() { this._needsCssToStyle = true; },
+        style(classAttr) { return this._sheet.add(classAttr); },
         pushScope(names) { this._scopes.push(names); },
         popScope() { this._scopes.pop(); }
     };
 
+    ctx._sheet = sheet;
     const jsx = emit(root, 0, ctx);
 
     return {
@@ -335,6 +357,9 @@ export function convertTemplate(source, { name = 'component' } = {}) {
         warnings: ctx._warnings,
         escalations: ctx._escalations,
         childComponents: [...ctx._children],
-        needsCssToStyle: ctx._needsCssToStyle
+        needsCssToStyle: ctx._needsCssToStyle,
+        css: sheet.toCss(),
+        usesStyles: !sheet.isEmpty,
+        styleReports: sheet.reports
     };
 }

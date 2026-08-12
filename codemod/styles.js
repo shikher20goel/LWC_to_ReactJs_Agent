@@ -131,6 +131,82 @@ export function convertClasses(classAttr, { preset = 'css-vars' } = {}) {
     };
 }
 
+/**
+ * Deterministic, READABLE CSS Module class name for a set of SLDS classes.
+ *
+ * Not a hash. A reviewer opening Foo.module.css has to be able to see which
+ * SLDS classes a rule came from, otherwise the mapping is only inspectable in
+ * the report and not at the point of use.
+ *
+ *   "slds-grid slds-wrap"          -> "gridWrap"
+ *   "slds-var-m-around_medium"     -> "varMAroundMedium"
+ *
+ * Identical class SETS collapse to the same name, which dedupes rules for
+ * free — the common case in a template that repeats a layout.
+ */
+export function classNameFor(classAttr) {
+    const parts = String(classAttr || '').split(/\s+/)
+        .filter((c) => c.startsWith('slds-'))
+        .map((c) => c.replace(/^slds-/, ''));
+    if (!parts.length) return null;
+    const name = parts
+        .map((p) => p.split(/[-_]/).filter(Boolean)
+            .map((s, i) => (i === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1)))
+            .join(''))
+        .map((p, i) => (i === 0 ? p : p.charAt(0).toUpperCase() + p.slice(1)))
+        .join('');
+    // A CSS identifier cannot start with a digit.
+    return /^\d/.test(name) ? `s${name}` : name;
+}
+
+/**
+ * Collects converted rules for one component and emits its CSS Module.
+ * Rules are keyed by class name, so a repeated class attribute yields one rule.
+ */
+export function createStyleSheet({ preset } = {}) {
+    const rules = new Map();
+    const reports = [];
+
+    return {
+        /**
+         * Convert a class attribute. Returns the module class name (or null if
+         * nothing SLDS was present) plus any non-SLDS classes to keep verbatim.
+         */
+        add(classAttr) {
+            const result = convertClasses(classAttr, preset ? { preset } : {});
+            reports.push(result);
+            const name = classNameFor(classAttr);
+            if (name && result.declarations.length && !rules.has(name)) {
+                rules.set(name, { css: result.declarations, from: classAttr });
+            }
+            return {
+                moduleClass: name && result.declarations.length ? name : null,
+                passthrough: result.passthrough,
+                result
+            };
+        },
+        get isEmpty() { return rules.size === 0; },
+        reports,
+        /** The .module.css text. Each rule cites the SLDS it came from. */
+        toCss() {
+            if (!rules.size) return '';
+            const out = ['/* GENERATED from SLDS classes by codemod/styles.js.',
+                ' * Do not edit — change catalog/slds.xml and regenerate.',
+                ' */', ''];
+            for (const [name, rule] of rules) {
+                out.push(`/* ${rule.from} */`);
+                out.push(`.${name} {`);
+                for (const decl of rule.css.join(';').split(';').filter(Boolean)) {
+                    const i = decl.indexOf(':');
+                    out.push(`  ${decl.slice(0, i)}: ${decl.slice(i + 1)};`);
+                }
+                out.push('}', '');
+            }
+            return out.join('\n');
+        }
+    };
+}
+
 /** Human-readable "SLDS X became CSS Y" table — the artifact teams review. */
 export function formatMappingReport(results) {
     const lines = [];

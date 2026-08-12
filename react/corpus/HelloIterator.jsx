@@ -4,6 +4,7 @@
  * 1 item(s) need review; see the TODO block below.
  */
 import React from 'react';
+import styles from './HelloIterator.module.css';
 import { Boundary, Card } from '@migration/salesforce-runtime/components';
 import { ViewSource } from './ViewSource.jsx';
 
@@ -33,7 +34,7 @@ export function HelloIterator({  }) {
   return (
     <Boundary name="HelloIterator" props={{}}>
       <Card title="HelloIterator" iconName="custom:custom14">
-        <ul className="slds-var-m-around_medium">
+        <ul className={styles.varMAroundMedium}>
           {contacts.map((__v, __i, __a) => { const it = { value: __v, index: __i, first: __i === 0, last: __i === __a.length - 1 }; return (
               <li key={it.value.Id}>
                 {it.first ? (

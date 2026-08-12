@@ -4,6 +4,7 @@
  * No review items flagged.
  */
 import React from 'react';
+import styles from './ViewSource.module.css';
 import { Boundary } from '@migration/salesforce-runtime/components';
 
 export function ViewSource({ source, children }) {
@@ -16,7 +17,7 @@ export function ViewSource({ source, children }) {
         {children}
       </div>
       <p>
-        <a className="slds-text-link" href={sourceURL} target="source">
+        <a className={styles.textLink} href={sourceURL} target="source">
           View Source
         </a>
       </p>

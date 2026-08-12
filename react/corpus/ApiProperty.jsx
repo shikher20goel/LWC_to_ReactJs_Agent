@@ -4,6 +4,7 @@
  * No review items flagged.
  */
 import React from 'react';
+import styles from './ApiProperty.module.css';
 import { Boundary, Card, Input } from '@migration/salesforce-runtime/components';
 import { ChartBar } from './ChartBar.jsx';
 import { ViewSource } from './ViewSource.jsx';
@@ -17,9 +18,9 @@ export function ApiProperty({  }) {
   return (
     <Boundary name="ApiProperty" props={{}}>
       <Card title="ApiProperty" iconName="standard:product_consumed">
-        <div className="slds-var-m-around_medium">
+        <div className={styles.varMAroundMedium}>
           <Input label="Percentage" type="number" min="0" max="100" value={percentage} onChange={handlePercentageChange} />
-          <fieldset className="slds-var-p-around_x-small">
+          <fieldset className={styles.varPAroundXSmall}>
             <legend>
               c-chart-bar
             </legend>

@@ -29,6 +29,7 @@ const outDir = process.argv[3]
 fs.mkdirSync(outDir, { recursive: true });
 
 let needsReview = 0;
+let cssFiles = 0;
 const summary = [];
 
 // Two passes: the set of siblings must be known BEFORE generating any one
@@ -55,11 +56,18 @@ for (const dir of bundles) {
     const outPath = path.join(outDir, `${r.componentName}.jsx`);
     fs.writeFileSync(outPath, r.code);
 
+    // The CSS Module is what makes the output independent of Salesforce's
+    // stylesheet. Without it the component still renders but is unstyled.
+    if (r.usesStyles) {
+        fs.writeFileSync(path.join(outDir, `${r.componentName}.module.css`), r.css);
+        cssFiles++;
+    }
+
     if (r.todos.length) needsReview++;
     summary.push({ name, component: r.componentName, todos: r.todos });
 }
 
-console.log(`Generated ${summary.length} component(s) into react/generated/\n`);
+console.log(`Generated ${summary.length} component(s), ${cssFiles} CSS module(s) -> ${outDir}\n`);
 for (const s of summary) {
     const mark = s.todos.length ? `${s.todos.length} to review` : 'clean';
     console.log(`  ${s.component.padEnd(20)} ${mark}`);

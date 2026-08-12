@@ -1,0 +1,14 @@
+/* GENERATED from SLDS classes by codemod/styles.js.
+ * Do not edit — change catalog/slds.xml and regenerate.
+ */
+
+/* slds-var-m-around_medium */
+.varMAroundMedium {
+  margin: var(--lwc-varSpacingMedium, 1rem);
+}
+
+/* slds-var-m-vertical_medium */
+.varMVerticalMedium {
+  margin-top: var(--lwc-varSpacingVerticalMedium, 1rem);
+  margin-bottom: var(--lwc-varSpacingVerticalMedium, 1rem);
+}

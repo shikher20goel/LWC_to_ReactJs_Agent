@@ -4,6 +4,7 @@
  * 2 item(s) need review; see the TODO block below.
  */
 import React from 'react';
+import styles from './EventWithData.module.css';
 import { useApex } from '@migration/salesforce-runtime';
 import { Boundary, Card, FormattedEmail, FormattedPhone, Layout, LayoutItem } from '@migration/salesforce-runtime/components';
 import { ContactListItem } from './ContactListItem.jsx';
@@ -28,18 +29,18 @@ export function EventWithData({  }) {
       <Card title="EventWithData" iconName="standard:logging">
         {contacts.data ? (
           <>
-            <Layout className="slds-var-m-around_medium">
+            <Layout className={styles.varMAroundMedium}>
               <LayoutItem>
                 {contacts.data.map((contact) => (
-                    <fieldset className="slds-var-p-horizontal_x-small" key={contact.Id}>
+                    <fieldset className={styles.varPHorizontalXSmall} key={contact.Id}>
                       <legend>
                         c-contact-list-item
                       </legend>
-                      <ContactListItem className="slds-show slds-is-relative" contact={contact} onSelect={handleSelect} />
+                      <ContactListItem className={styles.showIsRelative} contact={contact} onSelect={handleSelect} />
                     </fieldset>
                 ))}
               </LayoutItem>
-              <LayoutItem className="slds-var-m-left_medium">
+              <LayoutItem className={styles.varMLeftMedium}>
                 {selectedContact ? (
                   <>
                     <img src={selectedContact.Picture__c} alt="Profile photo" />

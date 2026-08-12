@@ -4,6 +4,7 @@
  * No review items flagged.
  */
 import React from 'react';
+import styles from './CompositionBasics.module.css';
 import { Boundary, Card } from '@migration/salesforce-runtime/components';
 import { ContactTile } from './ContactTile.jsx';
 import { ViewSource } from './ViewSource.jsx';
@@ -20,12 +21,12 @@ export function CompositionBasics({  }) {
   return (
     <Boundary name="CompositionBasics" props={{}}>
       <Card title="CompositionBasics" iconName="custom:custom57">
-        <div className="slds-var-m-around_medium">
-          <fieldset className="slds-var-p-horizontal_x-small">
+        <div className={styles.varMAroundMedium}>
+          <fieldset className={styles.varPHorizontalXSmall}>
             <legend>
               c-contact-tile
             </legend>
-            <ContactTile className="slds-show slds-is-relative" contact={contact} />
+            <ContactTile className={styles.showIsRelative} contact={contact} />
           </fieldset>
         </div>
         <ViewSource source="lwc/compositionBasics">

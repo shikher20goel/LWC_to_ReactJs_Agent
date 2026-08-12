@@ -4,8 +4,12 @@
  * 2 item(s) need review; see the TODO block below.
  */
 import React from 'react';
+import styles from './PropertySummary.module.css';
 import { useApex, useRecord } from '@migration/salesforce-runtime';
 import { Boundary, Card, FormattedNumber } from '@migration/salesforce-runtime/components';
+import { getFieldValue } from '@migration/salesforce-runtime';
+import NAME_FIELD from '@salesforce/schema/Property__c.Name';
+import PRICE_FIELD from '@salesforce/schema/Property__c.Price__c';
 import { BrokerCard } from './BrokerCard.jsx';
 import getBroker from '@salesforce/apex/PropertyController.getBroker';
 
@@ -14,11 +18,11 @@ import getBroker from '@salesforce/apex/PropertyController.getBroker';
  *  [lifecycle-manual] renderedCallback requires human translation (DOM timing / imperative access).
  */
 
+const FIELDS = [NAME_FIELD, PRICE_FIELD];
+
 export function PropertySummary({ recordId, onBrokerselected }) {
-  // field: error — LWC instance state
-  const [error] = React.useState(undefined);
-  // field: renderCount — LWC instance state
-  const [renderCount] = React.useState(0);
+  const [error, setError] = React.useState(undefined);
+  const [renderCount, setRenderCount] = React.useState(0);
   const property = useRecord({ recordId: recordId, fields: FIELDS });
   const broker = useApex(getBroker, { propertyId: recordId });
   const hasProperty = Boolean(property && property.data);
@@ -41,7 +45,7 @@ export function PropertySummary({ recordId, onBrokerselected }) {
       <Card title="Property Summary" iconName="standard:account">
         {hasProperty ? (
           <>
-            <div className="slds-p-around_medium">
+            <div className={styles.pAroundMedium}>
               <h2 className="property-name">
                 {propertyName}
               </h2>

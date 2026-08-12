@@ -1,0 +1,171 @@
+/**
+ * @migration/salesforce-runtime — the stylesheet that replaces SLDS.
+ *
+ * Two jobs:
+ *   1. Define the DENSITY custom properties the converted spacing rules
+ *      reference. Without these, every `var(--lwc-varSpacing*)` emitted by
+ *      codemod/styles.js falls back to its Comfy default and Compact does
+ *      nothing — the feature would look preserved and be inert.
+ *   2. Style the base components in shim/components.js.
+ *
+ * Values from research/11 (verified against SLDS design tokens):
+ *   xxx-small 0.125rem · xx-small 0.25rem · x-small 0.5rem · small 0.75rem
+ *   medium 1rem · large 1.5rem · x-large 2rem · xx-large 3rem
+ * The scale is NON-LINEAR — small is 0.75rem, not 1rem.
+ */
+
+:root {
+    /* Static scale */
+    --sf-spacing-xxx-small: 0.125rem;
+    --sf-spacing-xx-small: 0.25rem;
+    --sf-spacing-x-small: 0.5rem;
+    --sf-spacing-small: 0.75rem;
+    --sf-spacing-medium: 1rem;
+    --sf-spacing-large: 1.5rem;
+    --sf-spacing-x-large: 2rem;
+    --sf-spacing-xx-large: 3rem;
+
+    /* Palette */
+    --sf-color-brand: #0176d3;
+    --sf-color-border: #c9c9c9;
+    --sf-color-surface: #fff;
+    --sf-color-background: #f3f3f3;
+    --sf-color-text: #181818;
+    --sf-color-text-weak: #514f4d;
+
+    /*
+     * DENSITY — Comfy (default).
+     * Three axis groups, exactly as SLDS resolves them: a converter that
+     * collapses these to one group is right in Comfy and wrong in Compact.
+     */
+    --lwc-varSpacingXxxSmall: 0.125rem;
+    --lwc-varSpacingXxSmall: 0.25rem;
+    --lwc-varSpacingXSmall: 0.5rem;
+    --lwc-varSpacingSmall: 0.75rem;
+    --lwc-varSpacingMedium: 1rem;
+    --lwc-varSpacingLarge: 1.5rem;
+
+    --lwc-varSpacingVerticalXxxSmall: 0.125rem;
+    --lwc-varSpacingVerticalXxSmall: 0.25rem;
+    --lwc-varSpacingVerticalXSmall: 0.5rem;
+    --lwc-varSpacingVerticalSmall: 0.75rem;
+    --lwc-varSpacingVerticalMedium: 1rem;
+    --lwc-varSpacingVerticalLarge: 1.5rem;
+
+    --lwc-varSpacingHorizontalXxxSmall: 0.125rem;
+    --lwc-varSpacingHorizontalXxSmall: 0.25rem;
+    --lwc-varSpacingHorizontalXSmall: 0.5rem;
+    --lwc-varSpacingHorizontalSmall: 0.75rem;
+    --lwc-varSpacingHorizontalMedium: 1rem;
+    --lwc-varSpacingHorizontalLarge: 1.5rem;
+}
+
+/**
+ * DENSITY — Compact.
+ * Salesforce's own documented example is varSpacingMedium 1rem -> 0.5rem.
+ * Set data-density="compact" on a container to see it apply. This is the
+ * feature a fixed-value conversion would have deleted.
+ */
+[data-density='compact'] {
+    --lwc-varSpacingXxxSmall: 0.125rem;
+    --lwc-varSpacingXxSmall: 0.125rem;
+    --lwc-varSpacingXSmall: 0.25rem;
+    --lwc-varSpacingSmall: 0.375rem;
+    --lwc-varSpacingMedium: 0.5rem;
+    --lwc-varSpacingLarge: 0.75rem;
+
+    --lwc-varSpacingVerticalXxxSmall: 0.125rem;
+    --lwc-varSpacingVerticalXxSmall: 0.125rem;
+    --lwc-varSpacingVerticalXSmall: 0.25rem;
+    --lwc-varSpacingVerticalSmall: 0.375rem;
+    --lwc-varSpacingVerticalMedium: 0.5rem;
+    --lwc-varSpacingVerticalLarge: 0.75rem;
+
+    --lwc-varSpacingHorizontalXxxSmall: 0.125rem;
+    --lwc-varSpacingHorizontalXxSmall: 0.125rem;
+    --lwc-varSpacingHorizontalXSmall: 0.25rem;
+    --lwc-varSpacingHorizontalSmall: 0.375rem;
+    --lwc-varSpacingHorizontalMedium: 0.5rem;
+    --lwc-varSpacingHorizontalLarge: 0.75rem;
+}
+
+/* ---------------- base components (shim/components.js) ---------------- */
+
+.slds-card {
+    background: var(--sf-color-surface);
+    border: 1px solid var(--sf-color-border);
+    border-radius: 0.25rem;
+}
+.slds-card__header {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-spacing-x-small);
+    padding: var(--sf-spacing-medium);
+    border-bottom: 1px solid var(--sf-color-border);
+}
+.slds-card__header-title { font-size: 1rem; font-weight: 700; margin: 0; }
+.slds-card__body { padding: var(--sf-spacing-medium); }
+
+.slds-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+    padding: 0 var(--sf-spacing-medium);
+    border: 1px solid var(--sf-color-border);
+    border-radius: 0.25rem;
+    background: var(--sf-color-surface);
+    color: var(--sf-color-brand);
+    font-size: 0.8125rem;
+    cursor: pointer;
+}
+.slds-button:hover { background: var(--sf-color-background); }
+.slds-button_brand {
+    background: var(--sf-color-brand);
+    border-color: var(--sf-color-brand);
+    color: #fff;
+}
+.slds-button_brand:hover { background: #014486; }
+.slds-button[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.slds-grid { display: flex; }
+.slds-wrap { flex-wrap: wrap; }
+.slds-col { flex: 1 1 auto; }
+
+.slds-form-element { margin-bottom: var(--sf-spacing-x-small); }
+.slds-form-element__label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--sf-color-text-weak);
+    margin-bottom: var(--sf-spacing-xx-small);
+}
+.slds-form-element__static { font-size: 0.8125rem; }
+.slds-input {
+    width: 100%;
+    min-height: 2rem;
+    padding: 0 var(--sf-spacing-x-small);
+    border: 1px solid var(--sf-color-border);
+    border-radius: 0.25rem;
+    background: var(--sf-color-surface);
+    font-size: 0.8125rem;
+}
+.slds-input:focus { outline: 2px solid var(--sf-color-brand); outline-offset: -2px; }
+.slds-input[type='checkbox'] { width: auto; min-height: 0; }
+
+.slds-icon_container { display: inline-flex; }
+
+/* Visually hidden but still in the accessibility tree — display:none would
+   remove it from screen readers entirely. */
+.slds-assistive-text {
+    position: absolute;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+a { color: var(--sf-color-brand); }

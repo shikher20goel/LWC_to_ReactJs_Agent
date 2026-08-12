@@ -4,6 +4,7 @@
  * No review items flagged.
  */
 import React from 'react';
+import styles from './HelloForEach.module.css';
 import { Boundary, Card } from '@migration/salesforce-runtime/components';
 import { ViewSource } from './ViewSource.jsx';
 
@@ -29,7 +30,7 @@ export function HelloForEach({  }) {
   return (
     <Boundary name="HelloForEach" props={{}}>
       <Card title="HelloForEach" iconName="custom:custom14">
-        <ul className="slds-var-m-around_medium">
+        <ul className={styles.varMAroundMedium}>
           {contacts.map((contact) => (
               <li key={contact.Id}>
                 {contact.Name}

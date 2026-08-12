@@ -22,9 +22,9 @@ export function AccountList({ onAccountselected }) {
       <Card title="Accounts" iconName="standard:account">
         {hasAccounts ? (
           <>
-            <ul className="slds-has-dividers_bottom-space">
+            <ul>
               {accounts.map((account) => (
-                  <li className="account-row slds-item" key={account.Id}>
+                  <li className="account-row" key={account.Id}>
                     <p className="account-name">
                       {account.Name}
                     </p>

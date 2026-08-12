@@ -4,11 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Generated React — LWC migration preview</title>
-    <!-- Salesforce Lightning Design System, so the shim components render with
-         real SLDS classes instead of unstyled markup. Loaded from a CDN; this
-         is a local dev preview only. -->
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/@salesforce-ux/design-system@2.24.4/assets/styles/salesforce-lightning-design-system.min.css" />
+    <!-- NO SLDS. The CDN stylesheet was removed deliberately: if the page
+         still looks right, the CSS conversion is real. If it does not, we
+         learn exactly what the converter is missing. Styles come from
+         shim/runtime.css plus the generated *.module.css files. -->
     <style>
         body { margin: 0; background: #f3f3f3; font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
         .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }

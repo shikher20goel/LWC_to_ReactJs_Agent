@@ -4,6 +4,7 @@
  * 1 item(s) need review; see the TODO block below.
  */
 import React from 'react';
+import styles from './RecordEditFormStaticContact.module.css';
 import { Boundary, Card } from '@migration/salesforce-runtime/components';
 import ACCOUNT_FIELD from '@salesforce/schema/Contact.AccountId';
 import NAME_FIELD from '@salesforce/schema/Contact.Name';
@@ -26,7 +27,7 @@ export function RecordEditFormStaticContact({ recordId, objectApiName }) {
   return (
     <Boundary name="RecordEditFormStaticContact" props={{ recordId, objectApiName }}>
       <Card title="RecordEditFormStaticContact" iconName="standard:contact">
-        <div className="slds-var-m-around_medium">
+        <div className={styles.varMAroundMedium}>
           {/* TIER-H: <lightning-record-edit-form> not auto-converted. Metadata-driven layout / FLS. Emit a spec and build by hand. */}
         </div>
         <ViewSource source="lwc/recordEditFormStaticContact">
