@@ -24,3 +24,5 @@ dist/
 
 # npm debug logs inside the vendored cache
 vendor/npm-cache/_logs/
+
+console/dist/

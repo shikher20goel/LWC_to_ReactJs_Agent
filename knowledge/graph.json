@@ -1,0 +1,1350 @@
+{
+  "generatedFrom": "corpus/lwc-recipes",
+  "totals": {
+    "components": 15,
+    "generated": 14,
+    "clean": 10,
+    "escalated": 1,
+    "lostEdges": 3
+  },
+  "nodes": [
+    {
+      "id": "lwc:apiProperty",
+      "type": "lwc",
+      "label": "apiProperty",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "lwc:chartBar",
+      "type": "lwc",
+      "label": "chartBar",
+      "side": "salesforce",
+      "tier": "M",
+      "tierReasons": []
+    },
+    {
+      "id": "lwc:viewSource",
+      "type": "lwc",
+      "label": "viewSource",
+      "side": "salesforce",
+      "tier": "M",
+      "tierReasons": []
+    },
+    {
+      "id": "base:lightning-card",
+      "type": "base-component",
+      "label": "lightning-card",
+      "tier": "M",
+      "side": "salesforce"
+    },
+    {
+      "id": "base:lightning-input",
+      "type": "base-component",
+      "label": "lightning-input",
+      "tier": "M",
+      "side": "salesforce"
+    },
+    {
+      "id": "react:ApiProperty",
+      "type": "react",
+      "label": "ApiProperty",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "base:lightning-layout",
+      "type": "base-component",
+      "label": "lightning-layout",
+      "tier": "M",
+      "side": "salesforce"
+    },
+    {
+      "id": "base:lightning-layout-item",
+      "type": "base-component",
+      "label": "lightning-layout-item",
+      "tier": "M",
+      "side": "salesforce"
+    },
+    {
+      "id": "react:ChartBar",
+      "type": "react",
+      "label": "ChartBar",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "lwc:compositionBasics",
+      "type": "lwc",
+      "label": "compositionBasics",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "lwc:contactTile",
+      "type": "lwc",
+      "label": "contactTile",
+      "side": "salesforce",
+      "tier": "M",
+      "tierReasons": []
+    },
+    {
+      "id": "react:CompositionBasics",
+      "type": "react",
+      "label": "CompositionBasics",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "lwc:contactList",
+      "type": "lwc",
+      "label": "contactList",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "apex:ContactController",
+      "type": "apex",
+      "label": "ContactController",
+      "side": "salesforce"
+    },
+    {
+      "id": "react:ContactList",
+      "type": "react",
+      "label": "ContactList",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "spring:ContactControllerService",
+      "type": "spring",
+      "label": "ContactControllerService",
+      "side": "target"
+    },
+    {
+      "id": "lwc:contactListItem",
+      "type": "lwc",
+      "label": "contactListItem",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "react:ContactListItem",
+      "type": "react",
+      "label": "ContactListItem",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "base:lightning-icon",
+      "type": "base-component",
+      "label": "lightning-icon",
+      "tier": "M",
+      "side": "salesforce"
+    },
+    {
+      "id": "base:lightning-formatted-phone",
+      "type": "base-component",
+      "label": "lightning-formatted-phone",
+      "tier": "M",
+      "side": "salesforce"
+    },
+    {
+      "id": "react:ContactTile",
+      "type": "react",
+      "label": "ContactTile",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "lwc:errorPanel",
+      "type": "lwc",
+      "label": "errorPanel",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "lwc:eventWithData",
+      "type": "lwc",
+      "label": "eventWithData",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "base:lightning-formatted-email",
+      "type": "base-component",
+      "label": "lightning-formatted-email",
+      "tier": "M",
+      "side": "salesforce"
+    },
+    {
+      "id": "react:EventWithData",
+      "type": "react",
+      "label": "EventWithData",
+      "status": "review",
+      "reviewItems": 2,
+      "side": "target"
+    },
+    {
+      "id": "lwc:hello",
+      "type": "lwc",
+      "label": "hello",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "react:Hello",
+      "type": "react",
+      "label": "Hello",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "lwc:helloConditionalRendering",
+      "type": "lwc",
+      "label": "helloConditionalRendering",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "react:HelloConditionalRendering",
+      "type": "react",
+      "label": "HelloConditionalRendering",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "lwc:helloForEach",
+      "type": "lwc",
+      "label": "helloForEach",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "react:HelloForEach",
+      "type": "react",
+      "label": "HelloForEach",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "lwc:helloIterator",
+      "type": "lwc",
+      "label": "helloIterator",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "react:HelloIterator",
+      "type": "react",
+      "label": "HelloIterator",
+      "status": "review",
+      "reviewItems": 1,
+      "side": "target"
+    },
+    {
+      "id": "lwc:recordEditFormStaticContact",
+      "type": "lwc",
+      "label": "recordEditFormStaticContact",
+      "tier": "H",
+      "tierReasons": [
+        "Tier-H component <lightning-record-edit-form>",
+        "Tier-H component <lightning-messages>",
+        "Tier-H component <lightning-input-field>"
+      ],
+      "side": "salesforce"
+    },
+    {
+      "id": "base:lightning-record-edit-form",
+      "type": "base-component",
+      "label": "lightning-record-edit-form",
+      "tier": "H",
+      "side": "salesforce"
+    },
+    {
+      "id": "base:lightning-messages",
+      "type": "base-component",
+      "label": "lightning-messages",
+      "tier": "H",
+      "side": "salesforce"
+    },
+    {
+      "id": "base:lightning-input-field",
+      "type": "base-component",
+      "label": "lightning-input-field",
+      "tier": "H",
+      "side": "salesforce"
+    },
+    {
+      "id": "base:lightning-button",
+      "type": "base-component",
+      "label": "lightning-button",
+      "tier": "M",
+      "side": "salesforce"
+    },
+    {
+      "id": "react:RecordEditFormStaticContact",
+      "type": "react",
+      "label": "RecordEditFormStaticContact",
+      "status": "escalated",
+      "reviewItems": 1,
+      "side": "target"
+    },
+    {
+      "id": "react:ViewSource",
+      "type": "react",
+      "label": "ViewSource",
+      "status": "clean",
+      "reviewItems": 0,
+      "side": "target"
+    },
+    {
+      "id": "lwc:wireGetRecordStaticContact",
+      "type": "lwc",
+      "label": "wireGetRecordStaticContact",
+      "tier": "M",
+      "tierReasons": [],
+      "side": "salesforce"
+    },
+    {
+      "id": "module:lightning/uiRecordApi",
+      "type": "platform-module",
+      "label": "lightning/uiRecordApi",
+      "status": "shim",
+      "side": "salesforce"
+    },
+    {
+      "id": "react:WireGetRecordStaticContact",
+      "type": "react",
+      "label": "WireGetRecordStaticContact",
+      "status": "review",
+      "reviewItems": 1,
+      "side": "target"
+    }
+  ],
+  "edges": [
+    {
+      "from": "lwc:apiProperty",
+      "to": "lwc:chartBar",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:apiProperty",
+      "to": "lwc:viewSource",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:apiProperty",
+      "to": "base:lightning-card",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:apiProperty",
+      "to": "base:lightning-input",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:apiProperty",
+      "to": "react:ApiProperty",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:ApiProperty",
+      "to": "react:ChartBar",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "react:ApiProperty",
+      "to": "react:ViewSource",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "lwc:chartBar",
+      "to": "base:lightning-layout",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:chartBar",
+      "to": "base:lightning-layout-item",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:chartBar",
+      "to": "react:ChartBar",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "lwc:compositionBasics",
+      "to": "lwc:contactTile",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:compositionBasics",
+      "to": "lwc:viewSource",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:compositionBasics",
+      "to": "base:lightning-card",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:compositionBasics",
+      "to": "react:CompositionBasics",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:CompositionBasics",
+      "to": "react:ContactTile",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "react:CompositionBasics",
+      "to": "react:ViewSource",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "lwc:contactList",
+      "to": "base:lightning-layout",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:contactList",
+      "to": "base:lightning-layout-item",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:contactList",
+      "to": "apex:ContactController",
+      "kind": "calls",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:contactList",
+      "to": "react:ContactList",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:ContactList",
+      "to": "spring:ContactControllerService",
+      "kind": "calls",
+      "side": "target"
+    },
+    {
+      "from": "apex:ContactController",
+      "to": "spring:ContactControllerService",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "lwc:contactListItem",
+      "to": "base:lightning-layout",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:contactListItem",
+      "to": "base:lightning-layout-item",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:contactListItem",
+      "to": "react:ContactListItem",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "lwc:contactTile",
+      "to": "base:lightning-layout",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:contactTile",
+      "to": "base:lightning-layout-item",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:contactTile",
+      "to": "base:lightning-icon",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:contactTile",
+      "to": "base:lightning-formatted-phone",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:contactTile",
+      "to": "react:ContactTile",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "lwc:contactListItem",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "lwc:errorPanel",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "lwc:viewSource",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "base:lightning-card",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "base:lightning-layout",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "base:lightning-layout-item",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "base:lightning-formatted-phone",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "base:lightning-formatted-email",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "apex:ContactController",
+      "kind": "calls",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:eventWithData",
+      "to": "react:EventWithData",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:EventWithData",
+      "to": "react:ContactListItem",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "react:EventWithData",
+      "to": "react:ErrorPanel",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "react:EventWithData",
+      "to": "react:ViewSource",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "react:EventWithData",
+      "to": "spring:ContactControllerService",
+      "kind": "calls",
+      "side": "target"
+    },
+    {
+      "from": "apex:ContactController",
+      "to": "spring:ContactControllerService",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "lwc:hello",
+      "to": "lwc:viewSource",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:hello",
+      "to": "base:lightning-card",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:hello",
+      "to": "react:Hello",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:Hello",
+      "to": "react:ViewSource",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "lwc:helloConditionalRendering",
+      "to": "lwc:viewSource",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:helloConditionalRendering",
+      "to": "base:lightning-card",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:helloConditionalRendering",
+      "to": "base:lightning-input",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:helloConditionalRendering",
+      "to": "react:HelloConditionalRendering",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:HelloConditionalRendering",
+      "to": "react:ViewSource",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "lwc:helloForEach",
+      "to": "lwc:viewSource",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:helloForEach",
+      "to": "base:lightning-card",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:helloForEach",
+      "to": "react:HelloForEach",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:HelloForEach",
+      "to": "react:ViewSource",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "lwc:helloIterator",
+      "to": "lwc:viewSource",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:helloIterator",
+      "to": "base:lightning-card",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:helloIterator",
+      "to": "react:HelloIterator",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:HelloIterator",
+      "to": "react:ViewSource",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "lwc:recordEditFormStaticContact",
+      "to": "lwc:viewSource",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:recordEditFormStaticContact",
+      "to": "base:lightning-card",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:recordEditFormStaticContact",
+      "to": "base:lightning-record-edit-form",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:recordEditFormStaticContact",
+      "to": "base:lightning-messages",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:recordEditFormStaticContact",
+      "to": "base:lightning-input-field",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:recordEditFormStaticContact",
+      "to": "base:lightning-button",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:recordEditFormStaticContact",
+      "to": "react:RecordEditFormStaticContact",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:RecordEditFormStaticContact",
+      "to": "react:ViewSource",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "lwc:viewSource",
+      "to": "react:ViewSource",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "lwc:wireGetRecordStaticContact",
+      "to": "lwc:errorPanel",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:wireGetRecordStaticContact",
+      "to": "lwc:viewSource",
+      "kind": "child",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:wireGetRecordStaticContact",
+      "to": "base:lightning-card",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:wireGetRecordStaticContact",
+      "to": "base:lightning-formatted-phone",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:wireGetRecordStaticContact",
+      "to": "base:lightning-formatted-email",
+      "kind": "uses",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:wireGetRecordStaticContact",
+      "to": "module:lightning/uiRecordApi",
+      "kind": "wires",
+      "side": "salesforce"
+    },
+    {
+      "from": "lwc:wireGetRecordStaticContact",
+      "to": "react:WireGetRecordStaticContact",
+      "kind": "converts-to",
+      "side": "crossing"
+    },
+    {
+      "from": "react:WireGetRecordStaticContact",
+      "to": "react:ErrorPanel",
+      "kind": "child",
+      "side": "target"
+    },
+    {
+      "from": "react:WireGetRecordStaticContact",
+      "to": "react:ViewSource",
+      "kind": "child",
+      "side": "target"
+    }
+  ],
+  "components": [
+    {
+      "name": "apiProperty",
+      "component": "ApiProperty",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [
+          "c-chart-bar",
+          "c-view-source"
+        ],
+        "baseComponents": [
+          "lightning-card",
+          "lightning-input"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 4,
+        "lostEdges": 0,
+        "survived": 4,
+        "lost": []
+      }
+    },
+    {
+      "name": "chartBar",
+      "component": "ChartBar",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [],
+        "baseComponents": [
+          "lightning-layout",
+          "lightning-layout-item"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 2,
+        "lostEdges": 0,
+        "survived": 2,
+        "lost": []
+      }
+    },
+    {
+      "name": "compositionBasics",
+      "component": "CompositionBasics",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [
+          "c-contact-tile",
+          "c-view-source"
+        ],
+        "baseComponents": [
+          "lightning-card"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 3,
+        "lostEdges": 0,
+        "survived": 3,
+        "lost": []
+      }
+    },
+    {
+      "name": "contactList",
+      "component": "ContactList",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [],
+        "baseComponents": [
+          "lightning-layout",
+          "lightning-layout-item"
+        ],
+        "apexClasses": [
+          "ContactController"
+        ],
+        "apexMethods": [
+          "ContactController.getContactList"
+        ],
+        "wires": [
+          {
+            "adapter": "getContactList",
+            "module": "@salesforce/apex/ContactController.getContactList"
+          }
+        ],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": [
+          {
+            "name": "contactselect",
+            "composed": false,
+            "bubbles": false
+          }
+        ]
+      },
+      "coverage": {
+        "totalEdges": 3,
+        "lostEdges": 0,
+        "survived": 3,
+        "lost": []
+      }
+    },
+    {
+      "name": "contactListItem",
+      "component": "ContactListItem",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [],
+        "baseComponents": [
+          "lightning-layout",
+          "lightning-layout-item"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": [
+          {
+            "name": "select",
+            "composed": false,
+            "bubbles": false
+          }
+        ]
+      },
+      "coverage": {
+        "totalEdges": 2,
+        "lostEdges": 0,
+        "survived": 2,
+        "lost": []
+      }
+    },
+    {
+      "name": "contactTile",
+      "component": "ContactTile",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [],
+        "baseComponents": [
+          "lightning-layout",
+          "lightning-layout-item",
+          "lightning-icon",
+          "lightning-formatted-phone"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 4,
+        "lostEdges": 0,
+        "survived": 4,
+        "lost": []
+      }
+    },
+    {
+      "name": "errorPanel",
+      "component": "ErrorPanel",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "not-generated",
+      "reviewItems": null,
+      "todos": [],
+      "salesforce": {
+        "children": [],
+        "baseComponents": [],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [
+          "render"
+        ],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 0,
+        "lostEdges": 0,
+        "survived": 0,
+        "lost": []
+      }
+    },
+    {
+      "name": "eventWithData",
+      "component": "EventWithData",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "review",
+      "reviewItems": 2,
+      "todos": [
+        {
+          "kind": "template-event-casing",
+          "detail": "Custom event \"select\" — LWC lowercases event names, so the original camelCase cannot be recovered. Emitted \"onSelect\"; verify."
+        },
+        {
+          "kind": "missing-dependency",
+          "detail": "<ErrorPanel> is used but was not part of this conversion set. Convert it too, or the generated file will not resolve."
+        }
+      ],
+      "salesforce": {
+        "children": [
+          "c-contact-list-item",
+          "c-error-panel",
+          "c-view-source"
+        ],
+        "baseComponents": [
+          "lightning-card",
+          "lightning-layout",
+          "lightning-layout-item",
+          "lightning-formatted-phone",
+          "lightning-formatted-email"
+        ],
+        "apexClasses": [
+          "ContactController"
+        ],
+        "apexMethods": [
+          "ContactController.getContactList"
+        ],
+        "wires": [
+          {
+            "adapter": "getContactList",
+            "module": "@salesforce/apex/ContactController.getContactList"
+          }
+        ],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 9,
+        "lostEdges": 0,
+        "survived": 9,
+        "lost": []
+      }
+    },
+    {
+      "name": "hello",
+      "component": "Hello",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [
+          "c-view-source"
+        ],
+        "baseComponents": [
+          "lightning-card"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 2,
+        "lostEdges": 0,
+        "survived": 2,
+        "lost": []
+      }
+    },
+    {
+      "name": "helloConditionalRendering",
+      "component": "HelloConditionalRendering",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [
+          "c-view-source"
+        ],
+        "baseComponents": [
+          "lightning-card",
+          "lightning-input"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 3,
+        "lostEdges": 0,
+        "survived": 3,
+        "lost": []
+      }
+    },
+    {
+      "name": "helloForEach",
+      "component": "HelloForEach",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [
+          "c-view-source"
+        ],
+        "baseComponents": [
+          "lightning-card"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 2,
+        "lostEdges": 0,
+        "survived": 2,
+        "lost": []
+      }
+    },
+    {
+      "name": "helloIterator",
+      "component": "HelloIterator",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "review",
+      "reviewItems": 1,
+      "todos": [
+        {
+          "kind": "template-iterator",
+          "detail": "iterator:it exposes .value/.index/.first/.last — emitted a shim object; verify."
+        }
+      ],
+      "salesforce": {
+        "children": [
+          "c-view-source"
+        ],
+        "baseComponents": [
+          "lightning-card"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 2,
+        "lostEdges": 0,
+        "survived": 2,
+        "lost": []
+      }
+    },
+    {
+      "name": "recordEditFormStaticContact",
+      "component": "RecordEditFormStaticContact",
+      "tier": "H",
+      "tierReasons": [
+        "Tier-H component <lightning-record-edit-form>",
+        "Tier-H component <lightning-messages>",
+        "Tier-H component <lightning-input-field>"
+      ],
+      "status": "escalated",
+      "reviewItems": 1,
+      "todos": [
+        {
+          "kind": "tier-h",
+          "detail": "lightning-record-edit-form"
+        }
+      ],
+      "salesforce": {
+        "children": [
+          "c-view-source"
+        ],
+        "baseComponents": [
+          "lightning-card",
+          "lightning-record-edit-form",
+          "lightning-messages",
+          "lightning-input-field",
+          "lightning-button"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 6,
+        "lostEdges": 3,
+        "survived": 3,
+        "lost": [
+          {
+            "edge": "base:lightning-record-edit-form",
+            "why": "Tier-H component — a product build, not a translation"
+          },
+          {
+            "edge": "base:lightning-messages",
+            "why": "Tier-H component — a product build, not a translation"
+          },
+          {
+            "edge": "base:lightning-input-field",
+            "why": "Tier-H component — a product build, not a translation"
+          }
+        ]
+      }
+    },
+    {
+      "name": "viewSource",
+      "component": "ViewSource",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "clean",
+      "reviewItems": 0,
+      "todos": [],
+      "salesforce": {
+        "children": [],
+        "baseComponents": [],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [],
+        "platformModules": [],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 0,
+        "lostEdges": 0,
+        "survived": 0,
+        "lost": []
+      }
+    },
+    {
+      "name": "wireGetRecordStaticContact",
+      "component": "WireGetRecordStaticContact",
+      "tier": "M",
+      "tierReasons": [],
+      "status": "review",
+      "reviewItems": 1,
+      "todos": [
+        {
+          "kind": "missing-dependency",
+          "detail": "<ErrorPanel> is used but was not part of this conversion set. Convert it too, or the generated file will not resolve."
+        }
+      ],
+      "salesforce": {
+        "children": [
+          "c-error-panel",
+          "c-view-source"
+        ],
+        "baseComponents": [
+          "lightning-card",
+          "lightning-formatted-phone",
+          "lightning-formatted-email"
+        ],
+        "apexClasses": [],
+        "apexMethods": [],
+        "wires": [
+          {
+            "adapter": "getRecord",
+            "module": "lightning/uiRecordApi"
+          }
+        ],
+        "platformModules": [
+          "uiRecordApi"
+        ],
+        "lifecycle": [],
+        "events": []
+      },
+      "coverage": {
+        "totalEdges": 6,
+        "lostEdges": 0,
+        "survived": 6,
+        "lost": []
+      }
+    }
+  ]
+}
