@@ -9,6 +9,7 @@ module.exports = {
     },
     testMatch: [
         '<rootDir>/oracle/**/*.test.js',
-        '<rootDir>/codemod/**/*.test.js'
+        '<rootDir>/codemod/**/*.test.js',
+        '<rootDir>/census/**/*.test.js'
     ]
 };

@@ -50,8 +50,8 @@ such.
 | S-1 | Oracle spike | 03 Part 1 | R1–R3 | ✅ `research/05` |
 | R4 | LWC template AST (`@lwc/template-compiler`) | Cluster B | — | ✅ `research/06` |
 | R5 | Mine `blittle/lwc2react` transform rules | Cluster B | — | ✅ `research/06` — verdict: **do not fork it** |
-| R6 | LWC static analysis at org scale | Cluster C | — | 🟡 → `research/07` |
-| R7 | Apex parsing + dependency graph | Cluster C | — | 🟡 → `research/07` |
+| R6 | LWC static analysis at org scale | Cluster C | — | ✅ `research/07` — verdict: 3–5 days, not 2 weeks |
+| R7 | Apex parsing + dependency graph | Cluster C | — | ✅ `research/07` — `@apexdevtools/apex-parser@5.1.0` |
 | R8 | LDS semantics → fidelity-loss table | Cluster D | — | ✅ `research/08` — 27-row table, 4 real losses |
 | R9 | TanStack Query conventions for a shim | Cluster D | — | ✅ `research/08` |
 | R10 | Agent SDK vs Claude Code headless as loop runtime | Cluster E | — | ⬜ |
@@ -84,8 +84,9 @@ what exists.
 
 | ID | Task | Depends | Status |
 |---|---|---|---|
-| C-1 | Build census tool (static analysis) | R6, R7 | 🔒 on R6/R7 |
-| C-2 | **Run M-1 census against your org** | C-1 + org source | 🔒 **org** |
+| C-1 | Build census tool — LWC half | R6, R7 | ✅ `census/lwc-census.js` + `npm run census` |
+| C-1b | Census tool — Apex half (sharing, SOQL access mode) | R7 | ⬜ **unblocked** — needed for gate C-4 |
+| C-2 | **Run M-1 census against your org** | C-1 ✅ + org source | 🔒 **org — tool is ready and waiting** |
 | C-3 | 🚧 **GATE:** Tier H > 35% → STOP, reconsider LWC-OSS / strangler-fig | C-2 | 🚧 |
 | C-4 | 🚧 **GATE:** FLS/sharing-dependent > 50% → STOP, this is a security rewrite | C-2 | 🚧 |
 | C-5 | Order `catalog/base-components.xml` by real usage | C-2 | 🔒 org |

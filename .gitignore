@@ -14,3 +14,6 @@ trace/
 
 # agent scratch probes (kept on disk, not versioned)
 probe*.mjs
+
+# census output contains org metadata (component + Apex class names)
+census/census.json

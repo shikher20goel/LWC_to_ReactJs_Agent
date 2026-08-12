@@ -9,7 +9,9 @@
   "scripts": {
     "test": "jest",
     "test:verbose": "jest --silent=false",
-    "oracle": "jest oracle/normalise.test.js --silent=false"
+    "oracle": "jest oracle/normalise.test.js --silent=false",
+    "census": "node census/run.js",
+    "codemod": "jest codemod --silent=false"
   },
   "devDependencies": {
     "@lwc/template-compiler": "8.28.2",
