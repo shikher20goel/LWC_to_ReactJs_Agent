@@ -18,9 +18,27 @@ only means something if v1 still exists to compare against.
 
 ## Canonical source
 
-These files also live in Google Drive. Git is canonical; Drive is for reading.
+These files also live in Google Drive (folder `LWCToReactJsResearch`). Git is
+canonical; Drive is for reading.
 
-> **NOTE (scaffold):** The five numbered docs below were placeholders at
-> scaffold time — the human-authored research had not yet been dropped into
-> this directory. Replace each stub with the real document. See the top of
-> each file for its intended contents.
+## Provenance
+
+Sourced from Drive on 11 Aug 2026. Drive titles drifted from repo filenames;
+the mapping below is per `08 — Folder Manifest`:
+
+| Drive title | → repo path |
+|---|---|
+| LWC-to-React-Agentic-Migration-BestPractices-v2.md | `01-architecture-v2.md` |
+| 02-agentic-engineering-best-practices.md | `02-agentic-engineering-best-practices.md` |
+| 03 — Next Steps & Research Plan (v1.1, post-spike) | `03-next-steps-and-research-plan.md` |
+| R1-R3 Oracle Feasibility — … | `04-clusterA-oracle-feasibility.md` |
+| S-1 SPIKE RESULTS — Oracle Feasibility: PASS | `05-s1-spike-results.md` |
+| 07 — SETUP-RUNBOOK (full, executable) | `../SETUP-RUNBOOK.md` |
+
+**Doc 03 is v1.1** (post-spike, marks S-1 complete) — newer than the v1.0
+referenced by the runbook. Drive-only docs not mirrored here: `00 — Research
+Index & Status`, `06 — Setup Runbook (how to use)`, `08 — Folder Manifest`.
+
+**Not yet present:** `00-architecture-v1-superseded.md`. The manifest keeps it
+out of Drive deliberately — its value is being diffable against v2 in Git.
+Retrieve it from the originating chat to complete the versioning story above.
