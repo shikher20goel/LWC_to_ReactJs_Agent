@@ -16,9 +16,16 @@ The oracle suite must pass. This is the gate.
 ## Hard rules — never violate
 
 1. **No Salesforce passwords, security tokens, or session IDs.** Ever. Not in
-   code, config, logs, or commit messages. Auth is JWT Bearer via a
-   pre-authorised org alias. The username-password flow is being retired by
-   Salesforce and must not be implemented.
+   code, config, logs, or commit messages.
+   - Use **External Client Apps**, not Connected Apps — Spring '26 blocked new
+     Connected App creation by default, with mandatory OAuth controls from
+     11 May 2026.
+   - Auth Code + PKCE for user-context flows; Client Credentials or JWT Bearer
+     for service-only. Username-password retires **Winter '27** (SOAP
+     `login()` 1 Jun 2027) and must not be implemented.
+   - Salesforce refresh tokens default to *valid until revoked*, so an
+     exfiltrated token is potentially permanent access. This is why rule 8
+     keeps tokens out of the browser.
 2. **Never modify fixtures, shim tests, or the golden corpus to make a test
    pass.** These are evidence, not knobs. If a fixture is genuinely wrong,
    FLAG FOR HUMAN and stop.
@@ -61,6 +68,49 @@ The oracle suite must pass. This is the gate.
      for *every* integration on the org. Treat quota pressure as a first-class
      signal and never retry a quota failure — that burns more of what is
      already gone.
+
+## PROHIBITED PATTERNS — do not implement, do not propose
+
+- **Never call `/s/sfsites/aura` (or any `/aura` endpoint) from the BFF or
+  anywhere else.** `@AuraEnabled` Apex is not externally callable by design,
+  and this undocumented endpoint is the tempting shortcut when the proper
+  re-exposure work looks expensive. It is:
+  - unversioned and unsupported — it can break with any release
+  - session-context based, so it does not fit a service integration
+  - **documented publicly as an ATTACK TECHNIQUE** (AppOmni), including
+    guest-user data access. Traffic to it looks like an attack signature to a
+    security team, because for everyone else it is one.
+  The correct answer is re-exposure (see below), or deferring the component.
+
+- **Never widen an integration user's permissions to make a call succeed.**
+  A single integration user with broad access moves the entire authorisation
+  model out of Salesforce and into our code — the confused-deputy problem.
+  If a call fails on permissions, that is the security model working.
+
+## Apex re-exposure — the backend workstream
+
+`@AuraEnabled` is scoped to Lightning components. Every `@wire(apexMethod)`
+and imperative Apex call in a migrated component needs a real external
+endpoint before that component can ship. Triage, cheapest first:
+
+1. **`@InvocableMethod`** → `/actions/custom/apex/{Name}`. An additive
+   annotation, so it is mechanically applicable and does not disturb existing
+   callers. Try this first.
+2. **`@RestResource`** — one method per verb per class, plus URL design, DTO
+   contracts and new tests. Real work; use when Invocable does not fit.
+3. **Do not re-expose at all** — prefer UI API or GraphQL where the Apex was
+   only wrapping a query. Often the cheapest option is deleting the Apex.
+
+## FLS and sharing — off-platform, this is OUR problem
+
+- **UI API, GraphQL and REST enforce FLS and sharing.** Apex does **not**,
+  unless it opts in.
+- v67.0 (Summer '26) makes Apex default to *user mode*, but it is
+  **version-gated**: legacy classes below v67.0 still run in system mode. Do
+  not assume a class is safe because the platform default changed.
+- Therefore: prefer UI API / GraphQL over re-exposed Apex wherever the Apex
+  was only fetching data. Every re-exposed method needs an explicit FLS and
+  sharing decision recorded, not inherited.
 
 ## Oracle invariants — discovered by the S-1 spike, do not regress
 
