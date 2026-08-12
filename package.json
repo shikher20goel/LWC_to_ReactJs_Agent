@@ -16,7 +16,8 @@
     "fixtures:check": "jest fixtures --silent=false",
     "preview": "vite",
     "corpus": "node census/run.js corpus/lwc-recipes && node codemod/generate.js corpus/lwc-recipes react/corpus",
-    "styles": "node codemod/styles-report.js corpus/lwc-recipes"
+    "styles": "node codemod/styles-report.js corpus/lwc-recipes",
+    "apex:facade": "node apex/generate-facade.js force-app/main/default/classes apex/generated"
   },
   "devDependencies": {
     "@apexdevtools/apex-parser": "^5.1.0",
