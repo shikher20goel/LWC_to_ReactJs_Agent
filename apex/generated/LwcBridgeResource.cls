@@ -13,7 +13,7 @@
  *
  *  2. Only @AuraEnabled(cacheable=true) methods are bridged. Salesforce
  *     forbids DML in a cacheable method, so this endpoint CANNOT mutate data —
- *     enforced by the platform, not promised by us. 3 mutating
+ *     enforced by the platform, not promised by us. 0 mutating
  *     method(s) were excluded; see the report.
  *
  *  3. NEVER reach @AuraEnabled via /s/sfsites/aura instead of this. That
@@ -53,28 +53,8 @@ global with sharing class LwcBridgeResource {
             Object result;
 
             switch on req.op {
-                when 'AccountController.getAccountList' {
-                    result = AccountController.getAccountList();
-                }
-                when 'AccountController.getTotalNumber' {
-                    result = AccountController.getTotalNumber();
-                }
-                when 'AccountController.getSingleAccount' {
-                    result = AccountController.getSingleAccount();
-                }
-                when 'ApexTypesController.checkApexTypes' {
-                    CustomWrapper wrapper = (CustomWrapper) JSON.deserialize(JSON.serialize(args.get('wrapper')), CustomWrapper.class);
-                    result = ApexTypesController.checkApexTypes(wrapper);
-                }
-                when 'ContactController.getContactList' {
-                    result = ContactController.getContactList();
-                }
-                when 'ContactController.findContacts' {
-                    String searchKey = (String) args.get('searchKey');
-                    result = ContactController.findContacts(searchKey);
-                }
-                when 'ContactController.getSingleContact' {
-                    result = ContactController.getSingleContact();
+                when 'AccountController.getAccounts' {
+                    result = AccountController.getAccounts();
                 }
                 when else {
                     // Not an allowlisted operation. Deliberately does NOT echo

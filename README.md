@@ -31,6 +31,9 @@ it did, on observed paths" — without needing any pre-existing tests.
 
 ## Running it
 
+**Full guide: [RUNNING.md](RUNNING.md)** — every command, exit codes, and how to
+point it at your own org.
+
 Requires Node 22+ (developed on 24).
 
 ```bash
