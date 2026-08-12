@@ -1,7 +1,7 @@
 import React from 'react';
 import { boundary, slot } from './boundary.js';
 
-export { Boundary } from './boundary.js';
+export { Boundary, cssToStyle } from './boundary.js';
 
 /**
  * React equivalents of the catalog base components.
@@ -44,6 +44,76 @@ export function Button({ label, variant, iconName, disabled, type, onClick, data
 export function FormattedText({ value }) {
     return boundary('FormattedText', { value },
         h('span', { className: 'slds-form-element__static' }, value),
+        { base: true, as: 'span' });
+}
+
+export function Layout({ horizontalAlign, verticalAlign, pullToBoundary, multipleRows,
+    className, children }) {
+    return boundary('Layout',
+        { horizontalAlign, verticalAlign, pullToBoundary, multipleRows },
+        h('div', {
+            className: ['slds-grid', multipleRows && 'slds-wrap',
+                horizontalAlign && `slds-grid_align-${horizontalAlign}`,
+                verticalAlign && `slds-grid_vertical-align-${verticalAlign}`,
+                className].filter(Boolean).join(' ')
+        }, slot(children)),
+        { base: true });
+}
+
+export function LayoutItem({ size, padding, flexibility, alignmentBump,
+    smallDeviceSize, mediumDeviceSize, largeDeviceSize, className, children }) {
+    return boundary('LayoutItem',
+        { size, padding, flexibility, alignmentBump,
+            smallDeviceSize, mediumDeviceSize, largeDeviceSize },
+        h('div', {
+            className: ['slds-col',
+                size && `slds-size_${size}-of-12`,
+                padding && `slds-p-around_${String(padding).replace('horizontal-', '')}`,
+                className].filter(Boolean).join(' ')
+        }, slot(children)),
+        { base: true });
+}
+
+export function FormattedPhone({ value }) {
+    return boundary('FormattedPhone', { value },
+        h('a', { href: value ? `tel:${value}` : undefined }, value),
+        { base: true, as: 'span' });
+}
+
+export function FormattedEmail({ value, label, hideIcon }) {
+    return boundary('FormattedEmail', { value, label, hideIcon },
+        h('a', { href: value ? `mailto:${value}` : undefined }, label || value),
+        { base: true, as: 'span' });
+}
+
+export function Icon({ iconName, size, alternativeText, variant, title }) {
+    return boundary('Icon', { iconName, size, alternativeText, variant, title },
+        h('span', {
+            className: `slds-icon_container slds-icon-${String(iconName || '').replace(':', '-')}`,
+            title: title || alternativeText
+        }, h('span', { className: 'slds-assistive-text' }, alternativeText || iconName)),
+        { base: true, as: 'span' });
+}
+
+export function Input({ label, value, type, name, placeholder, required, disabled,
+    readOnly, checked, min, max, step, pattern, variant, messageWhenValueMissing,
+    onChange, onBlur }) {
+    return boundary('Input',
+        { label, value, type, name, placeholder, required, disabled, readOnly,
+            checked, min, max, step, pattern, variant, messageWhenValueMissing },
+        h('div', { className: 'slds-form-element' },
+            h('label', { className: 'slds-form-element__label' }, label),
+            h('div', { className: 'slds-form-element__control' },
+                h('input', {
+                    className: 'slds-input',
+                    type: type || 'text',
+                    name,
+                    value: value === undefined ? undefined : value,
+                    defaultValue: value === undefined ? '' : undefined,
+                    placeholder, required, disabled, readOnly, checked,
+                    min, max, step, pattern,
+                    onChange, onBlur
+                }))),
         { base: true });
 }
 
@@ -58,5 +128,5 @@ export function FormattedNumber({ value, formatStyle, currencyCode, minimumFract
     return boundary('FormattedNumber',
         { value, formatStyle, currencyCode, minimumFractionDigits },
         h('span', { className: 'slds-form-element__static' }, formatted),
-        { base: true });
+        { base: true, as: 'span' });
 }

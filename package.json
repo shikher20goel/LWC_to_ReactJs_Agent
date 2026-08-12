@@ -13,7 +13,9 @@
     "census": "node census/run.js",
     "codemod": "jest codemod --silent=false",
     "generate": "node codemod/generate.js",
-    "fixtures:check": "jest fixtures --silent=false"
+    "fixtures:check": "jest fixtures --silent=false",
+    "preview": "vite",
+    "corpus": "node census/run.js corpus/lwc-recipes && node codemod/generate.js corpus/lwc-recipes react/corpus"
   },
   "devDependencies": {
     "@apexdevtools/apex-parser": "^5.1.0",
@@ -23,7 +25,9 @@
     "@salesforce/sfdx-lwc-jest": "^7.9.0",
     "@tanstack/react-query": "^5.101.4",
     "dom-accessibility-api": "^0.7.1",
+    "fast-xml-parser": "^5.10.1",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "vite": "^8.2.1"
   }
 }

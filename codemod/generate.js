@@ -20,14 +20,26 @@ import { generateComponent } from './component.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = process.argv[2] || path.join(here, '..', 'force-app');
-const outDir = path.join(here, '..', 'react', 'generated');
+// Second arg lets a corpus run write elsewhere, so it never overwrites the
+// force-app output that oracle/generated.react.test.js imports.
+const outDir = process.argv[3]
+    ? path.resolve(process.argv[3])
+    : path.join(here, '..', 'react', 'generated');
 
 fs.mkdirSync(outDir, { recursive: true });
 
 let needsReview = 0;
 const summary = [];
 
-for (const dir of findBundles(root)) {
+// Two passes: the set of siblings must be known BEFORE generating any one
+// component, or child imports cannot be emitted.
+const bundles = findBundles(root).filter(
+    (d) => fs.existsSync(path.join(d, `${path.basename(d)}.html`))
+);
+const pascal = (s2) => s2.charAt(0).toUpperCase() + s2.slice(1);
+const knownComponents = new Set(bundles.map((d) => pascal(path.basename(d))));
+
+for (const dir of bundles) {
     const name = path.basename(dir);
     const jsPath = path.join(dir, `${name}.js`);
     const htmlPath = path.join(dir, `${name}.html`);
@@ -36,7 +48,8 @@ for (const dir of findBundles(root)) {
     const r = generateComponent({
         js: fs.readFileSync(jsPath, 'utf8'),
         html: fs.readFileSync(htmlPath, 'utf8'),
-        name
+        name,
+        knownComponents
     });
 
     const outPath = path.join(outDir, `${r.componentName}.jsx`);

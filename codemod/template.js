@@ -30,26 +30,15 @@
  */
 
 import { parse } from '@lwc/template-compiler';
+import { loadCatalog } from '../catalog/load.js';
 
 /** Diagnostics that mean "parsed, but do not migrate this". research/06 R4.5 */
 const BLOCKING_DIAGNOSTICS = new Set([1044, 1071, 1165]);
 
-/** Mirrors catalog/base-components.xml. O-9 replaces this with a loader. */
-const BASE_COMPONENTS = {
-    'lightning-card': 'Card',
-    'lightning-button': 'Button',
-    'lightning-formatted-number': 'FormattedNumber',
-    'lightning-formatted-text': 'FormattedText'
-};
-
-/** Tier H — never auto-convert. Emit a stub plus a spec. CLAUDE.md rule 4. */
-const TIER_H = new Set([
-    'lightning-record-edit-form',
-    'lightning-record-form',
-    'lightning-record-view-form',
-    'lightning-datatable',
-    'lightning-file-upload'
-]);
+// SINGLE SOURCE OF TRUTH: catalog/base-components.xml (O-9).
+const CAT = loadCatalog();
+const BASE_COMPONENTS = Object.fromEntries(CAT.all().map((c) => [c.tag, c.canonical]));
+const TIER_H = CAT.tierH;
 
 /** Plain-DOM events we can map with confidence. */
 const DOM_EVENTS = {
@@ -118,6 +107,17 @@ function collectProps(node, ctx, isComponent) {
     for (const a of node.attributes || []) {
         if (a.name === 'slot') continue;                 // handled by grouping
         const name = ATTR_RENAME[a.name] || a.name;
+        // React's style prop needs an OBJECT and throws on a string. LWC allows
+        // both, including a computed string, so convert at runtime.
+        if (a.name === 'style') {
+            ctx.needsCssToStyle();
+            const v = a.value;
+            const inner = v && v.type === 'Literal'
+                ? JSON.stringify(String(v.value))
+                : exprToSource(v, ctx);
+            parts.push(`style={cssToStyle(${inner})}`);
+            continue;
+        }
         const jsx = valueToJsx(a.value, ctx);
         parts.push(jsx === null ? name : `${name}=${jsx}`);
     }
@@ -260,6 +260,8 @@ function emit(node, depth, ctx) {
                     `<${node.name}> is not in catalog/base-components.xml — do not invent a mapping.`);
             }
 
+            if (isComponent && node.name.startsWith('c-')) ctx.child(tag);
+
             const props = collectProps(node, ctx, isComponent);
             const attrStr = props.length ? ' ' + props.join(' ') : '';
             const kids = emitChildren(node.children, depth + 1, ctx);
@@ -313,9 +315,13 @@ export function convertTemplate(source, { name = 'component' } = {}) {
     const ctx = {
         _warnings: [],
         _escalations: [],
+        _children: new Set(),
+        _needsCssToStyle: false,
         _scopes: [],
         warn(kind, message) { this._warnings.push({ kind, message }); },
         escalate(tag) { this._escalations.push(tag); },
+        child(name) { this._children.add(name); },
+        needsCssToStyle() { this._needsCssToStyle = true; },
         pushScope(names) { this._scopes.push(names); },
         popScope() { this._scopes.pop(); }
     };
@@ -327,6 +333,8 @@ export function convertTemplate(source, { name = 'component' } = {}) {
         jsx,
         blockers,
         warnings: ctx._warnings,
-        escalations: ctx._escalations
+        escalations: ctx._escalations,
+        childComponents: [...ctx._children],
+        needsCssToStyle: ctx._needsCssToStyle
     };
 }

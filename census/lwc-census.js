@@ -23,16 +23,11 @@ import fs from 'fs';
 import path from 'path';
 import { parse as parseTemplate } from '@lwc/template-compiler';
 import { parse as parseJs } from '@babel/parser';
+import { loadCatalog } from '../catalog/load.js';
 
-/** Tier H — a product build, not a translation. CLAUDE.md rule 4. */
-const TIER_H_TAGS = new Set([
-    'lightning-record-edit-form',
-    'lightning-record-form',
-    'lightning-record-view-form',
-    'lightning-datatable',
-    'lightning-file-upload',
-    'lightning-tree-grid'
-]);
+// SINGLE SOURCE OF TRUTH: catalog/base-components.xml (O-9). A Tier-H tag
+// missing here produces a WRONG kill-criterion percentage.
+const TIER_H_TAGS = loadCatalog().tierH;
 
 const PLATFORM_MODULES = {
     'lightning/messageService': 'LMS',

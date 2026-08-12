@@ -104,9 +104,21 @@ describe('CODEMOD — template to JSX', () => {
     });
 
     it('refuses to invent a mapping for an uncatalogued base component', () => {
-        // CLAUDE.md rule 3.
-        const r = conv(tpl('<lightning-tree-grid data={d}></lightning-tree-grid>'));
+        // CLAUDE.md rule 3. Uses a tag deliberately ABSENT from
+        // catalog/base-components.xml — if someone catalogues combobox later,
+        // this test should be repointed, not deleted.
+        const r = conv(tpl('<lightning-combobox options={o}></lightning-combobox>'));
         expect(r.warnings.some((w) => w.kind === 'uncatalogued-base')).toBe(true);
+    });
+
+    it('escalates a catalogued Tier-H component rather than warning', () => {
+        // tree-grid IS catalogued (tier="H"), so it must take the escalation
+        // path, not the uncatalogued path. These are different failures and
+        // the agent must not confuse "I do not know this" with "this cannot
+        // be auto-converted".
+        const r = conv(tpl('<lightning-tree-grid data={d}></lightning-tree-grid>'));
+        expect(r.escalations).toContain('lightning-tree-grid');
+        expect(r.warnings.some((w) => w.kind === 'uncatalogued-base')).toBe(false);
     });
 
     it('treats a missing iterator key (LWC1071) as a migration blocker', () => {

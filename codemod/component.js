@@ -21,6 +21,7 @@
 
 import { parse } from '@babel/parser';
 import { convertTemplate } from './template.js';
+import { loadCatalog } from '../catalog/load.js';
 
 const RUNTIME_PKG = '@migration/salesforce-runtime';
 
@@ -66,6 +67,13 @@ export function analyseComponentJs(code) {
         for (const s of n.specifiers) importMap.set(s.local.name, n.source.value);
     }
     out.importMap = importMap;
+
+    // Module-level declarations. lwc-recipes/wireGetRecordStaticContact does
+    // `const fields = [NAME_FIELD, ...]` at module scope and references it from
+    // the @wire config — dropping these emits code with undefined identifiers.
+    out.moduleConsts = ast.program.body
+        .filter((n) => n.type === 'VariableDeclaration')
+        .map((n) => src(code, n));
 
     const cls = ast.program.body
         .map((n) => (n.type === 'ExportDefaultDeclaration' ? n.declaration : n))
@@ -166,6 +174,60 @@ export function analyseComponentJs(code) {
     return out;
 }
 
+/**
+ * Rewrite assignments to LWC instance fields into React state setters.
+ *
+ * An LWC field is mutable instance state: `this.isVisible = true` re-renders.
+ * Emitting `const [isVisible] = useState(...)` and leaving the assignment
+ * alone produces "Assignment to constant variable" — caught here only because
+ * a REAL component (lwc-recipes helloConditionalRendering) does exactly this.
+ * The synthetic components never mutated state, so this was invisible.
+ *
+ * Handles the statement forms that actually occur; anything else is FLAGGED
+ * rather than mangled.
+ */
+function rewriteStateAssignments(body, fieldNames, todos, where) {
+    if (!fieldNames.length) return body;
+    let out = body;
+
+    for (const f of fieldNames) {
+        const setter = `set${pascal(f)}`;
+        // x = expr;  -> setX(expr);
+        // [\s\S]+? not [^;\n]+ : real components wrap long assignments across
+        // lines. lwc-recipes/eventWithData does exactly that, and a
+        // newline-excluding pattern silently skipped it.
+        out = out.replace(
+            new RegExp(`(^|[\\s{;])${f}\\s*=\\s*([\\s\\S]+?);`, 'g'),
+            (_m, pre, expr) => `${pre}${setter}(${expr.replace(/\s+/g, ' ').trim()});`
+        );
+        // x += expr;  x -= expr;  -> setX(x + (expr));
+        out = out.replace(
+            new RegExp(`(^|[\\s{;])${f}\\s*([+\\-*/])=\\s*([\\s\\S]+?);`, 'g'),
+            (_m, pre, op, expr) => `${pre}${setter}(${f} ${op} (${expr.replace(/\s+/g, ' ').trim()}));`
+        );
+        // x++ / x--
+        out = out.replace(
+            new RegExp(`(^|[\\s{;])${f}\\+\\+\\s*;`, 'g'),
+            (_m, pre) => `${pre}${setter}(${f} + 1);`
+        );
+        out = out.replace(
+            new RegExp(`(^|[\\s{;])${f}--\\s*;`, 'g'),
+            (_m, pre) => `${pre}${setter}(${f} - 1);`
+        );
+
+        // Anything left that still assigns to the bare field was not a form we
+        // handle — say so instead of shipping code that throws at runtime.
+        if (new RegExp(`(^|[\\s{;])${f}\\s*[+\\-*/]?=[^=]`).test(out)) {
+            todos.push({
+                kind: 'state-assignment',
+                detail: `${where}: assignment to "${f}" could not be rewritten to a `
+                    + `React setter automatically. Convert it to ${setter}(...) by hand.`
+            });
+        }
+    }
+    return out;
+}
+
 /** Rewrite this.dispatchEvent(new CustomEvent('foo',{detail:D})) -> onFoo?.(D) */
 function rewriteDispatches(body, events) {
     let out = body;
@@ -180,7 +242,7 @@ function rewriteDispatches(body, events) {
     return out;
 }
 
-export function generateComponent({ js, html, name }) {
+export function generateComponent({ js, html, name, knownComponents = new Set() }) {
     const a = analyseComponentJs(js);
     const tpl = convertTemplate(html, { name });
     const Comp = pascal(name);
@@ -194,9 +256,17 @@ export function generateComponent({ js, html, name }) {
 
     /* ---- imports ---- */
     const shimHooks = [...new Set(a.wires.map((w) => w.hook))];
-    const baseComponents = [...new Set(
-        (tpl.jsx || '').match(/<(Card|Button|FormattedText|FormattedNumber)\b/g) || []
-    )].map((m) => m.slice(1));
+    // Derive from the CATALOG, never a hardcoded list. A hardcoded one silently
+    // omits imports for newly catalogued components, and the generated file
+    // then references an undefined identifier — caught only at runtime.
+    const canonicalNames = new Set(
+        loadCatalog().all().filter((c) => c.tier !== 'H').map((c) => c.canonical)
+    );
+    const used = new Set();
+    for (const m of (tpl.jsx || '').matchAll(/<([A-Z][A-Za-z0-9]*)\b/g)) {
+        if (canonicalNames.has(m[1])) used.add(m[1]);
+    }
+    const baseComponents = [...used];
 
     // Generated code imports the PACKAGE, never a relative path — the output
     // must be independent of where it happens to be written, and this is the
@@ -205,8 +275,56 @@ export function generateComponent({ js, html, name }) {
     if (shimHooks.length) {
         importLines.push(`import { ${shimHooks.sort().join(', ')} } from '${RUNTIME_PKG}';`);
     }
-    const uiImports = [...new Set([...baseComponents, 'Boundary'])].sort();
+    const uiImports = [...new Set([...baseComponents, 'Boundary',
+        ...(tpl.needsCssToStyle ? ['cssToStyle'] : [])])].sort();
     importLines.push(`import { ${uiImports.join(', ')} } from '${RUNTIME_PKG}/components';`);
+
+    // Pass through the imports the component still needs. Dropping these emits
+    // undefined identifiers — e.g. lwc-recipes/wireGetRecordStaticContact
+    // imports four @salesforce/schema field tokens and getFieldValue.
+    const LDS_HOOKS = new Set(Object.keys(LDS_ADAPTERS));
+    const wireAdapters = new Set(a.wires.map((w) => w.adapter));
+    for (const imp of a.imports) {
+        const src2 = imp.source;
+        if (src2 === 'lwc') continue;                          // decorators are gone
+        if (src2.startsWith('@salesforce/apex/')) continue;    // handled by the wire
+        if (src2 === 'lightning/uiRecordApi') {
+            // Adapters became hooks; the helpers come from the runtime shim.
+            const helpers = imp.specifiers.filter(
+                (n) => !LDS_HOOKS.has(n) && !wireAdapters.has(n)
+            );
+            if (helpers.length) {
+                importLines.push(`import { ${helpers.sort().join(', ')} } from '${RUNTIME_PKG}';`);
+            }
+            continue;
+        }
+        if (src2.startsWith('@salesforce/schema/')) {
+            importLines.push(`import ${imp.specifiers[0]} from '${src2}';`);
+            continue;
+        }
+        importLines.push(
+            `// TODO: unmapped import — ${src2} (${imp.specifiers.join(', ')})`
+        );
+        todos.push({
+            kind: 'unmapped-import',
+            detail: `${src2} has no React equivalent yet. Map it or replace by hand.`
+        });
+    }
+
+    // Child c-* components. Without these the generated file references an
+    // undefined identifier — every multi-component conversion breaks at
+    // runtime, and nothing catches it until render.
+    for (const child of (tpl.childComponents || []).sort()) {
+        if (knownComponents.has(child)) {
+            importLines.push(`import { ${child} } from './${child}.jsx';`);
+        } else {
+            todos.push({
+                kind: 'missing-dependency',
+                detail: `<${child}> is used but was not part of this conversion set. `
+                    + 'Convert it too, or the generated file will not resolve.'
+            });
+        }
+    }
     for (const w of a.wires) {
         if (w.isApex) {
             importLines.push(`import ${w.adapter} from '${w.module}';`);
@@ -215,14 +333,18 @@ export function generateComponent({ js, html, name }) {
 
     /* ---- props ---- */
     const eventProps = [...new Set(a.emittedEvents.map((e) => `on${pascal(e.name)}`))];
-    const props = [...a.apiProps, ...eventProps];
+    // A default <slot> emits {children}; without destructuring it the generated
+    // component throws "children is not defined" at render.
+    const usesChildren = /\{children\}/.test(tpl.jsx || '');
+    const props = [...a.apiProps, ...eventProps, ...(usesChildren ? ['children'] : [])];
 
     /* ---- body ---- */
     const lines = [];
 
+    // LWC fields are MUTABLE instance state -> React state, with a setter.
+    const fieldNames = a.fields.map((f) => f.name);
     for (const f of a.fields) {
-        lines.push(`  // field: ${f.name} — LWC instance state`);
-        lines.push(`  const [${f.name}] = React.useState(${f.init});`);
+        lines.push(`  const [${f.name}, set${pascal(f.name)}] = React.useState(${f.init});`);
     }
 
     for (const w of a.wires) {
@@ -245,7 +367,8 @@ export function generateComponent({ js, html, name }) {
     }
 
     for (const m of a.methods) {
-        const body = rewriteDispatches(m.body, a.emittedEvents);
+        let body = rewriteDispatches(m.body, a.emittedEvents);
+        body = rewriteStateAssignments(body, fieldNames, todos, `${m.name}()`);
         lines.push(`  const ${m.name} = (${m.params.join(', ')}) => ${body};`);
     }
 
@@ -290,9 +413,13 @@ export function generateComponent({ js, html, name }) {
             + todos.map((t) => ` *  [${t.kind}] ${t.detail}`).join('\n') + '\n */\n'
         : '';
 
+    const moduleConstBlock = (a.moduleConsts || []).length
+        ? `\n${a.moduleConsts.join('\n')}\n`
+        : '';
+
     const code = `${header}
 ${importLines.join('\n')}
-${todoBlock}
+${todoBlock}${moduleConstBlock}
 export function ${Comp}({ ${props.join(', ')} }) {
 ${lines.join('\n')}
 

@@ -25,19 +25,11 @@
  *      into it. Getting this wrong disables [object Object] detection.
  */
 
-// Stand-in for catalog/base-components.xml. Replace with a catalog loader.
-const CATALOG = {
-    'lightning-card': { canonical: 'Card', props: ['title', 'iconName', 'variant'] },
-    'lightning-button': {
-        canonical: 'Button',
-        props: ['label', 'variant', 'iconName', 'disabled', 'type']
-    },
-    'lightning-formatted-number': {
-        canonical: 'FormattedNumber',
-        props: ['value', 'formatStyle', 'currencyCode', 'minimumFractionDigits']
-    },
-    'lightning-formatted-text': { canonical: 'FormattedText', props: ['value'] }
-};
+import { loadCatalog } from '../catalog/load.js';
+
+// SINGLE SOURCE OF TRUTH: catalog/base-components.xml (O-9). This used to be
+// a hardcoded stand-in that could drift from the codemod's copy.
+const CAT = loadCatalog();
 
 const isBaseComponent = (tag) => tag.startsWith('lightning-');
 const isCustomComponent = (tag) => tag.startsWith('c-');
@@ -48,7 +40,7 @@ function pascal(tag) {
 }
 
 function canonicalNameFor(tag) {
-    if (CATALOG[tag]) return CATALOG[tag].canonical;
+    if (CAT.has(tag)) return CAT.canonicalOf(tag);
     if (isCustomComponent(tag)) return pascal(tag);
     return tag;
 }
@@ -68,10 +60,9 @@ function pruneProps(raw) {
 
 // F1: read declared props off the element, by name.
 function readLwcProps(node, tag) {
-    const entry = CATALOG[tag];
-    if (entry) {
+    if (CAT.has(tag)) {
         const out = {};
-        entry.props.forEach((p) => { out[p] = node[p]; });
+        CAT.propsOf(tag).forEach((p) => { out[p] = node[p]; });
         return pruneProps(out);
     }
     const out = {};

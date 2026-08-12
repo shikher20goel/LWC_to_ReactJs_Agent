@@ -1,27 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<catalog schema="1.0" purpose="drives codemod, LLM mapping, AND oracle normaliser">
-  <!-- props: MUST be enumerated. The oracle reads these by name off the
-       element. Base-component stubs expose no discoverable public API. -->
-  <component tag="lightning-card" canonical="Card" tier="M">
+<catalog schema="1.1" purpose="drives codemod, LLM mapping, oracle normaliser AND census tiering">
+  <!--
+    SINGLE SOURCE OF TRUTH. Loaded by catalog/load.js and consumed by
+    oracle/normalise.js, codemod/template.js and census/lwc-census.js.
+    Do not hardcode a component map anywhere else.
+
+    props: MUST be enumerated. The oracle reads these BY NAME off the element
+    because base-component stubs expose no discoverable public API (S-1 F1).
+    A missing prop is invisible to the diff; a WRONG prop name produces a
+    false mismatch on every render.
+
+    verified="corpus" means the prop was observed in real third-party
+    templates (trailheadapps/lwc-recipes). Others are from the documented
+    LWC API and are marked accordingly.
+
+    Ordered by measured usage — census-first, per research/01 Phase 1.
+  -->
+
+  <component tag="lightning-card" canonical="Card" tier="M" uses="9">
     <props>title, iconName, variant</props>
-    <targets><target lib="tbd" name="Card" fidelity="0.9"/></targets>
     <slots>default, actions, footer, title</slots>
+    <targets><target lib="tbd" name="Card" fidelity="0.9"/></targets>
   </component>
-  <component tag="lightning-button" canonical="Button" tier="M">
-    <props>label, variant, iconName, disabled, type</props>
+
+  <component tag="lightning-layout" canonical="Layout" tier="M" uses="4">
+    <props>horizontalAlign, verticalAlign, pullToBoundary, multipleRows</props>
+    <note>class/style stay ATTRIBUTES even on a custom element (research/06 R4.4).</note>
+  </component>
+
+  <component tag="lightning-layout-item" canonical="LayoutItem" tier="M" uses="4">
+    <props>size, padding, flexibility, alignmentBump, smallDeviceSize, mediumDeviceSize, largeDeviceSize</props>
+  </component>
+
+  <component tag="lightning-formatted-phone" canonical="FormattedPhone" tier="M" uses="3">
+    <props>value</props>
+    <note>Stub renders NO text off-platform. Compare props, never rendered text.</note>
+  </component>
+
+  <component tag="lightning-input" canonical="Input" tier="M" uses="2">
+    <props>label, value, type, name, placeholder, required, disabled, readOnly, checked, min, max, step, pattern, variant, messageWhenValueMissing</props>
+    <events><event from="onchange" to="onChange"/><event from="onblur" to="onBlur"/></events>
+    <note>input.value and input.checked are the only common form fields LWC
+          promotes to PROPERTIES; the rest stay attributes (research/06 R4.4).</note>
+  </component>
+
+  <component tag="lightning-formatted-email" canonical="FormattedEmail" tier="M" uses="2">
+    <props>value, label, hideIcon</props>
+  </component>
+
+  <component tag="lightning-button" canonical="Button" tier="M" uses="1">
+    <props>label, variant, iconName, disabled, type, name</props>
     <events><event from="onclick" to="onClick"/></events>
   </component>
-  <component tag="lightning-formatted-number" canonical="FormattedNumber" tier="M">
+
+  <component tag="lightning-icon" canonical="Icon" tier="M" uses="1">
+    <props>iconName, size, alternativeText, variant, title</props>
+  </component>
+
+  <component tag="lightning-formatted-number" canonical="FormattedNumber" tier="M" uses="0">
     <props>value, formatStyle, currencyCode, minimumFractionDigits</props>
     <note>Stub renders NO text off-platform. Compare props, never rendered text.</note>
   </component>
-  <component tag="lightning-formatted-text" canonical="FormattedText" tier="M">
+
+  <component tag="lightning-formatted-text" canonical="FormattedText" tier="M" uses="0">
     <props>value</props>
   </component>
-  <!-- Tier H placeholder — do not auto-convert -->
-  <component tag="lightning-record-edit-form" canonical="RecordEditForm" tier="H">
+
+  <!-- ================= Tier H — never auto-convert ================= -->
+
+  <component tag="lightning-record-edit-form" canonical="RecordEditForm" tier="H" uses="1">
     <reason>Metadata-driven layout, FLS enforcement, validation rules, DML.
             Replacing it is a product build, not a translation.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+
+  <component tag="lightning-record-form" canonical="RecordForm" tier="H">
+    <reason>As record-edit-form, plus layout resolution from page layouts.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+
+  <component tag="lightning-record-view-form" canonical="RecordViewForm" tier="H">
+    <reason>FLS-dependent field rendering decided server-side.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+
+  <component tag="lightning-input-field" canonical="InputField" tier="H">
+    <reason>Only meaningful inside a record form; type and validation come
+            from object metadata, not from the template.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+
+  <component tag="lightning-messages" canonical="Messages" tier="H">
+    <reason>Renders form-level errors produced by the record-form DML cycle.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+
+  <component tag="lightning-datatable" canonical="DataTable" tier="H">
+    <reason>Custom data types, inline edit, virtualisation, column metadata.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+
+  <component tag="lightning-file-upload" canonical="FileUpload" tier="H">
+    <reason>ContentDocument plumbing, guest-user rules, org file limits.</reason>
+    <escalate-always>true</escalate-always>
+  </component>
+
+  <component tag="lightning-tree-grid" canonical="TreeGrid" tier="H">
+    <reason>As datatable, plus lazy hierarchy loading.</reason>
     <escalate-always>true</escalate-always>
   </component>
 </catalog>

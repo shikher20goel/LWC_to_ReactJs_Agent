@@ -6,6 +6,7 @@
 import React from 'react';
 import { useApex, useRecord } from '@migration/salesforce-runtime';
 import { Boundary, Card, FormattedNumber } from '@migration/salesforce-runtime/components';
+import { BrokerCard } from './BrokerCard.jsx';
 import getBroker from '@salesforce/apex/PropertyController.getBroker';
 
 /* REVIEW REQUIRED:
