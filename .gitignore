@@ -26,3 +26,23 @@ dist/
 vendor/npm-cache/_logs/
 
 console/dist/
+
+# ============================================================
+# RETRIEVED ORG SOURCE — NOT COMMITTED
+# This repo is PUBLIC. Metadata retrieved from a real org (component
+# names, Apex logic, business rules) is the org owner's to publish, not
+# a default. Generated OUTPUT is ignored for the same reason: it is a
+# translation of that source.
+#
+# The three fixture bundles this project ships with are re-included
+# below, because the tests depend on them.
+# ============================================================
+force-app/main/default/lwc/*
+force-app/main/default/classes/*
+!force-app/main/default/lwc/accountList/
+!force-app/main/default/lwc/brokerCard/
+!force-app/main/default/lwc/propertySummary/
+react/generated/*
+springboot/generated/*
+knowledge/graph.json
+census/census.json

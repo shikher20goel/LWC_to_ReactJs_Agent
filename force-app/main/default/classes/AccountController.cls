@@ -1,18 +1,9 @@
 public with sharing class AccountController {
-    /**
-     * Accounts for the accountList LWC.
-     * WITH USER_MODE enforces FLS and sharing at the query layer — the
-     * migration must preserve this, it is not decoration. See CLAUDE.md
-     * hard rule 4 on FLS/sharing-dependent behaviour.
-     */
-    @AuraEnabled(cacheable=true)
-    public static List<Account> getAccounts() {
-        return [
-            SELECT Id, Name, Industry
+    @AuraEnabled
+    public static List<Account> findAll() {
+    return [SELECT id, name, Location__Latitude__s, Location__Longitude__s
             FROM Account
-            WITH USER_MODE
-            ORDER BY Name
-            LIMIT 50
-        ];
+            WHERE Location__Latitude__s != NULL AND Location__Longitude__s != NULL
+            LIMIT 50];
     }
 }

@@ -1,0 +1,17 @@
+<template>
+    <lightning-card title="Property Summary" icon-name="standard:account">
+        <template lwc:if={hasProperty}>
+            <div class="slds-p-around_medium">
+                <h2 class="property-name">{propertyName}</h2>
+                <lightning-formatted-number value={propertyPrice}
+                    format-style="currency" currency-code="USD">
+                </lightning-formatted-number>
+                <c-broker-card broker-name={brokerName} broker-id={brokerId}
+                    oncontact={handleBrokerContact}></c-broker-card>
+            </div>
+        </template>
+        <template lwc:else>
+            <p class="empty-state">Select a property to see details here</p>
+        </template>
+    </lightning-card>
+</template>

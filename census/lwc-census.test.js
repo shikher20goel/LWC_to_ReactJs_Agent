@@ -9,7 +9,11 @@
 import path from 'path';
 import { runCensus, censusBundle, findBundles } from './lwc-census.js';
 
-const SRC = path.join(__dirname, '..', 'force-app');
+// A STABLE fixture tree, deliberately not force-app. force-app is where a
+// user retrieves their own org into, so pointing tests at it means the suite
+// breaks the moment the tool is used for its actual purpose — which is exactly
+// what happened.
+const SRC = path.join(__dirname, '..', 'fixtures', 'force-app');
 const bundleDir = (n) => path.join(SRC, 'main', 'default', 'lwc', n);
 
 describe('CENSUS — bundle discovery', () => {
