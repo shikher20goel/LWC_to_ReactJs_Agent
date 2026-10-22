@@ -378,7 +378,7 @@ function App() {
     async function generate() {
         setBusy(true); setMsg('');
         try {
-            const r = await fetch('/api/generate', { method: 'POST' });
+            const r = await fetch('/api/generate', { method: 'POST', headers: { 'X-Console': '1' } });
             const j = await r.json();
             setMsg(j.ok
                 ? `Regenerated ${j.total ?? ''} component(s). Reload to see updated graph.`

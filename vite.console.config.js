@@ -46,6 +46,23 @@ function consoleApi() {
                     res.end(JSON.stringify(obj));
                 };
 
+                // This middleware runs before Vite's own host and CORS checks, so
+                // it guards itself. Any page open in the developer's browser can
+                // POST to localhost; a DNS-rebinding page can even read replies.
+                // Require a loopback Host, a same-origin Origin when one is sent,
+                // and a custom header on POST (which forces a CORS preflight).
+                if (req.url && req.url.startsWith('/api/')) {
+                    const host = req.headers.host || '';
+                    const origin = req.headers.origin;
+                    const loopback = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(host);
+                    if (!loopback || (origin && origin !== `http://${host}`)) {
+                        return json({ error: 'forbidden' }, 403);
+                    }
+                    if (req.method === 'POST' && req.headers['x-console'] !== '1') {
+                        return json({ error: 'forbidden' }, 403);
+                    }
+                }
+
                 if (req.url === '/api/generate' && req.method === 'POST') {
                     // force-app is where the user retrieves their org. Hardcoding
                     // the demo corpus here meant pressing Generate overwrote the
